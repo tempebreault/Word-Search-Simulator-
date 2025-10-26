@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Word Search – Deluxe v2.0</title>
+<meta name="color-scheme" content="dark light" />
+<style>
+  :root{
+    --bg:#0b1020;--bg2:#070b18;--panel:#0f1733cc;--ink:#e5e7eb;--muted:#93a4c2;--accent:#7c3aed;--ac2:#22d3ee;--good:#22c55e;--bad:#ef4444;--gold:#facc15;--ring:#22d3eea6;--shadow:0 20px 40px rgba(0,0,0,.35);--round:18px
+  }
+  @media (prefers-color-scheme: light){
+    :root{ --bg:#eef2ff; --bg2:#ffffff; --panel:#ffffffee; --ink:#0b1220; --muted:#475569; --shadow:0 18px 34px rgba(0,0,0,.08) }
+  }
+  *{box-sizing:border-box} html,body{height:100%}
+  body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:var(--ink);background:radial-gradient(1000px 700px at 10% 10%,#102358 0%,transparent 60%),radial-gradient(900px 700px at 90% 20%,#0a3b4a 0%,transparent 55%),linear-gradient(180deg,var(--bg),var(--bg2));}
+
+  .wrap{max-width:1200px;margin:0 auto;padding:24px;display:flex;flex-direction:column;gap:16px;min-height:100%}
+  .card{background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.03));backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.09);border-radius:var(--round);padding:18px;box-shadow:var(--shadow)}
+  header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  .brand{display:flex;gap:12px;align-items:center}
+  .logo{width:44px;height:44px;border-radius:12px;background:conic-gradient(from 0deg,var(--accent),var(--ac2),var(--accent));box-shadow:0 0 24px #8b5cf658,inset 0 0 30px #22d3ee40;animation:spin 10s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  h1{margin:0;font-size:1.35rem}
+
+  .menu{display:grid;grid-template-columns:1fr;gap:12px}
+  .btn{appearance:none;border:none;border-radius:14px;padding:12px 14px;color:white;font-weight:900;letter-spacing:.3px;cursor:pointer;transition:transform .08s ease,filter .18s ease,box-shadow .18s ease;background:linear-gradient(90deg,var(--accent),var(--ac2));box-shadow:0 15px 30px #7c3aed28}
+  .btn:hover{transform:translateY(-1px);filter:brightness(1.04)}
+  .btn:active{transform:translateY(0)}
+  .btn.ghost{background:#192451;border:1px solid rgba(255,255,255,.08);box-shadow:none;color:var(--ink)}
+  .btn.neutral{background:#101a48;border:1px solid rgba(255,255,255,.08);box-shadow:none}
+
+  .grid{display:grid;grid-template-columns:repeat(14, 1fr);gap:6px;user-select:none}
+  .cell{aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;background:#0b1339;border:1px solid rgba(255,255,255,.06);border-radius:8px;font-weight:800;letter-spacing:.3px;position:relative;transition:filter .12s}
+  .cell.mark{background:#0f234d}
+  .cell.sel{outline:2px solid var(--ring)}
+  .cell.good{background:#123f2a;border-color:#2dd46c66}
+
+  .sidebar{display:flex;flex-direction:column;gap:10px}
+  .word{padding:6px 8px;border-radius:10px;background:#0c1740;border:1px solid rgba(255,255,255,.07)}
+  .word.found{text-decoration:line-through;color:#9fe6b6;border-color:#2dd46c66;background:#0f2a1b}
+
+  .hud{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .stat{padding:10px 12px;border-radius:12px;background:#101c49;border:1px solid rgba(255,255,255,.08)}
+  .stat .v{font-size:1.2rem;font-weight:900}
+
+  .flex{display:flex;gap:16px;align-items:stretch}
+  .col{flex:1}
+  .side{width:320px}
+
+  /* Loading stage */
+  .loading{height:260px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;border-radius:16px;background:radial-gradient(400px 200px at 30% 30%,#12245c,transparent),#0b1339}
+  .orbs{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
+  .orb{width:16px;height:16px;border-radius:999px;background:radial-gradient(circle at 30% 30%,#fff,transparent 60%);box-shadow:0 0 20px #fff8}
+  .orbit{position:absolute;animation:orbit 4s linear infinite}
+  .orbit:nth-child(1){width:160px;height:160px}
+  .orbit:nth-child(2){width:220px;height:220px;animation-duration:5s}
+  .orbit:nth-child(3){width:280px;height:280px;animation-duration:6s}
+  @keyframes orbit{to{transform:rotate(360deg)}}
+  .loadtext{font-size:1.2rem;font-weight:900;letter-spacing:.4px;background:linear-gradient(90deg,#fff,#a7f3d0,#93c5fd,#f0abfc,#fff);-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 3s linear infinite}
+  @keyframes shine{to{background-position:600px 0}}
+  .marquee{position:absolute;left:-100%;right:-100%;top:12px;opacity:.35;white-space:nowrap;animation:mar 10s linear infinite}
+  @keyframes mar{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+  /* Modals */
+  .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.5)}
+  .modal .box{width:min(560px, 95vw);background:#0e1738;border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:18px}
+  .modal.show{display:flex}
+
+  /* Game Over */
+  .center{display:flex;align-items:center;justify-content:center;min-height:180px;text-align:center}
+
+  /* Changelog */
+  dialog{border:none;border-radius:16px;padding:0;max-width:720px;width:clamp(320px, 80vw, 720px);background:#0e1738;color:var(--ink);box-shadow:var(--shadow)}
+  dialog::backdrop{background:rgba(0,0,0,.5);backdrop-filter:blur(2px)}
+  .modal-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.08)}
+  .modal-body{padding:16px 18px;max-height:70vh;overflow:auto}
+
+  /* Nuke animation */
+  #nukeStage{position:fixed;inset:0;pointer-events:none;display:none}
+  #nukeStage svg{position:absolute;left:50%;transform:translateX(-50%);}
+  .shake{animation:shake .6s linear 4}
+  @keyframes shake{0%,100%{transform:translate(0)}25%{transform:translate(2px,-2px)}50%{transform:translate(-2px,2px)}75%{transform:translate(1px,1px)}}
+
+  @media(max-width:980px){.flex{flex-direction:column}.side{width:auto}.hud{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+  <div class="wrap" id="appRoot">
+    <header class="card">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>Word Search – Deluxe <span style="opacity:.6">v2.0</span></h1>
+          <div style="color:var(--muted)">Find words, earn ⭐ stars, and shop power‑ups. Admins… have toys.</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn ghost" id="logsBtn" aria-haspopup="dialog" aria-controls="changelog">Update Logs</button>
+        <div class="stat" style="display:flex;gap:10px;align-items:center"><span>⭐ Stars:</span><span class="v" id="stars">0</span></div>
+      </div>
+    </header>
+
+    <!-- Main Menu -->
+    <section id="menu" class="card menu" role="region" aria-label="Main menu">
+      <button class="btn" id="beginBtn">Begin Searching</button>
+      <button class="btn ghost" id="storeBtn">Power‑Up Store</button>
+      <button class="btn ghost" id="adminBtn">Admin Panel</button>
+    </section>
+
+    <!-- Loading Stage -->
+    <section id="loading" class="card loading" style="display:none">
+      <div class="orbs">
+        <div class="orbit"><div class="orb"></div></div>
+        <div class="orbit"><div class="orb"></div></div>
+        <div class="orbit"><div class="orb"></div></div>
+      </div>
+      <div class="marquee">
+        <span style="margin-right:40px">Initializing Lexicon Matrix ░▒▓</span>
+        <span style="margin-right:40px">Spinning Semantic Gyros ▶▶</span>
+        <span style="margin-right:40px">Calibrating Alphabet Soup 🍲</span>
+      </div>
+      <div class="loadtext" id="loadFancy">Compiling puzzle…</div>
+    </section>
+
+    <!-- Game HUD + Board -->
+    <section id="game" class="card" style="display:none">
+      <div class="hud" style="margin-bottom:10px">
+        <div class="stat"><div>Timer <div class="v" id="time">00:00</div></div></div>
+        <div class="stat"><div>Found <div class="v" id="found">0</div></div></div>
+        <div class="stat"><div>Topic <div class="v" id="topic">—</div></div></div>
+        <div class="stat"><div>Difficulty <div class="v" id="diff">Normal</div></div></div>
+      </div>
+
+      <div class="flex">
+        <div class="col">
+          <div id="board" class="grid" aria-label="word search board"></div>
+        </div>
+        <aside class="side sidebar">
+          <div style="font-weight:900">Find these words</div>
+          <div id="wordList"></div>
+          <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+            <button class="btn" id="choose1">1 min</button>
+            <button class="btn" id="choose5">5 min</button>
+            <button class="btn" id="choose10">10 min</button>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+            <button class="btn ghost" id="useHint">Use Hint (x<span id="hintCount">0</span>)</button>
+            <button class="btn neutral" id="backMenu">Main Menu</button>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- Store Modal -->
+    <div id="store" class="modal" aria-hidden="true">
+      <div class="box">
+        <h3 style="margin:6px 0 10px 0">Power‑Up Store</h3>
+        <div style="color:var(--muted);margin-bottom:10px">Spend ⭐ to gain an edge.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+          <div class="card">
+            <div style="font-weight:900;margin-bottom:8px">3 Hints</div>
+            <div style="color:var(--muted);margin-bottom:8px">Highlights the first letter of a random hidden word.</div>
+            <button class="btn buy" data-item="hints" data-cost="3">Buy for 3⭐</button>
+          </div>
+          <div class="card">
+            <div style="font-weight:900;margin-bottom:8px">Freeze Time (10s)</div>
+            <div style="color:var(--muted);margin-bottom:8px">Pause the countdown for ten precious seconds.</div>
+            <button class="btn buy" data-item="freeze" data-cost="4">Buy for 4⭐</button>
+          </div>
+          <div class="card">
+            <div style="font-weight:900;margin-bottom:8px">Reveal Row</div>
+            <div style="color:var(--muted);margin-bottom:8px">Draws attention to a row/column containing a word.</div>
+            <button class="btn buy" data-item="revealrc" data-cost="5">Buy for 5⭐</button>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="btn ghost" id="closeStore">Close</button></div>
+      </div>
+    </div>
+
+    <!-- Admin Modal -->
+    <div id="adminModal" class="modal" aria-hidden="true">
+      <div class="box">
+        <h3 style="margin:6px 0 10px 0">Admin Panel Access</h3>
+        <div style="color:var(--muted);margin-bottom:10px">Enter passkey to unlock admin powers.</div>
+        <input id="adminKey" placeholder="Passkey" class="btn ghost" style="width:100%;background:#132051;padding:12px;border-radius:10px" />
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+          <button class="btn" id="adminSubmit">Unlock</button>
+          <button class="btn ghost" id="adminCancel">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Over Modal (returns to main menu) -->
+    <div id="over" class="modal" aria-hidden="true">
+      <div class="box center" id="overBox"></div>
+    </div>
+  </div>
+
+  <!-- Admin floating button -->
+  <div class="card" id="fab" title="Admin Tools" style="position:fixed;inset:auto 24px 24px auto;width:54px;height:54px;border-radius:999px;background:linear-gradient(90deg,var(--accent),var(--ac2));display:none;align-items:center;justify-content:center;font-weight:900;color:#fff;cursor:grab;box-shadow:0 16px 40px #0008;z-index:50">ADM</div>
+
+  <!-- Nuke animation stage -->
+  <div id="nukeStage"></div>
+
+  <!-- Changelog Modal -->
+  <dialog id="changelog" aria-labelledby="changelogTitle">
+    <div class="modal-head">
+      <h2 id="changelogTitle" style="margin:0;font-weight:900">Update Logs — v2.0</h2>
+      <button class="btn ghost" data-close>Close</button>
+    </div>
+    <div class="modal-body">
+      <h3 style="margin-top:0">Major improvements (no new power-ups, just better everything)</h3>
+      <ul>
+        <li><strong>UI Revamp:</strong> cleaner layout, responsive HUD, light mode support, better contrast.</li>
+        <li><strong>Graphics:</strong> new loading orbits, hint pulses, row/column reveal glow, and an overhauled <em>Destroy App</em> cinematic (falling nuke + shockwave).</li>
+        <li><strong>Controls:</strong> Main Menu button during games, Game Over offers <em>Play Again</em>, <em>Next Topic</em>, or <em>Main Menu</em>—no page reload.</li>
+        <li><strong>Selection:</strong> robust straight‑line detection with direction lock; better touch support.</li>
+        <li><strong>Timer:</strong> accurate countdown with freeze integration; difficulty label.</li>
+        <li><strong>Store:</strong> clearer feedback; buttons appear once purchased; proper depletion handling.</li>
+        <li><strong>Stability:</strong> bounds checks, HTML escape hardening, consistent star accounting, anti‑repeat topics.</li>
+        <li><strong>Accessibility:</strong> ARIA labels, focus outlines, dialogs with proper semantics.</li>
+      </ul>
+    </div>
+  </dialog>
+
+<script>
+/*************** Data ****************/
+const SIZE = 14; // grid size
+let stars = 0; let hints = 0; let freezeCharges = 0; let revealCharges = 0;
+let topicIdxLast = -1;
+
+const PRESETS = [
+  { name:'Animals', words:['TIGER','PANDA','ZEBRA','EAGLE','KOALA','OTTER','CAMEL','WHALE','HORSE','MOUSE'] },
+  { name:'Fruits', words:['APPLE','BANANA','MANGO','ORANGE','PEACH','LEMON','CHERRY','GRAPE','PEAR','PLUM'] },
+  { name:'Planets', words:['MERCURY','VENUS','EARTH','MARS','JUPITER','SATURN','URANUS','NEPTUNE'] },
+  { name:'Programming', words:['JAVASCRIPT','PYTHON','KOTLIN','SWIFT','RUST','GO','JAVA','REACT','ANGULAR'] },
+  { name:'Sports', words:['SOCCER','HOCKEY','CRICKET','RUGBY','BOXING','CYCLING','SKIING','ROWING'] },
+  { name:'Music', words:['GUITAR','PIANO','DRUMS','VIOLIN','TRUMPET','FLUTE','HARP','CELLO'] },
+  { name:'Oceans', words:['PACIFIC','ATLANTIC','INDIAN','ARCTIC','SOUTHERN'] },
+  { name:'Weather', words:['RAIN','SUNNY','CLOUDY','STORM','WIND','SNOW','FOG'] },
+  { name:'Colors', words:['RED','ORANGE','YELLOW','GREEN','BLUE','INDIGO','VIOLET','BLACK','WHITE'] },
+  { name:'Canada', words:['OTTAWA','NORTHBAY','ONTARIO','QUEBEC','PRAIRIES','ROCKIES','MAPLE','BEAVER'] },
+  { name:'Food', words:['PIZZA','BURGER','PASTA','SUSHI','TACO','SALAD','STEAK','SOUP'] },
+  { name:'Jobs', words:['TEACHER','PLUMBER','DOCTOR','NURSE','LAWYER','PILOT','ENGINEER'] },
+  { name:'Cities', words:['TORONTO','CALGARY','MONTREAL','VANCOUVER','WINNIPEG','HALIFAX','OTTAWA'] },
+  { name:'Nature', words:['RIVER','MOUNTAIN','FOREST','DESERT','VALLEY','OCEAN','ISLAND'] },
+  { name:'Space', words:['GALAXY','NEBULA','ASTEROID','COMET','ORBIT','ROVER','PHASE'] },
+  { name:'Tech', words:['LAPTOP','MOBILE','ROBOT','DRONE','SERVER','SENSOR','CLOUD'] },
+  { name:'Vehicles', words:['CAR','TRUCK','TRAIN','BOAT','PLANE','SUBWAY','BICYCLE'] },
+  { name:'Math', words:['ALGEBRA','GEOMETRY','VECTOR','MATRIX','CALCULUS','ANGLE'] },
+  { name:'Clothes', words:['JACKET','SHOES','HAT','GLOVES','JEANS','SWEATER','SCARF'] },
+  { name:'Elements', words:['CARBON','OXYGEN','HYDROGEN','NITROGEN','SODIUM','IRON','GOLD'] }
+];
+
+/*************** State ****************/
+let board = []; // 2D chars
+let words = []; // {text, positions:[{r,c}], found:false}
+let selecting = false; let path=[]; let startCell=null; let dirLock=null; // direction lock for straight lines
+let timer=null; let remain=0; let frozen=false; // freeze power
+let currentTopic = null; let difficulty = 'Normal';
+
+/*************** Helpers ****************/
+const $ = sel => document.querySelector(sel);
+const boardEl = $('#board');
+const listEl = $('#wordList');
+const timeEl = $('#time');
+const foundEl = $('#found');
+const topicEl = $('#topic');
+const diffEl = $('#diff');
+const starsEl = $('#stars');
+const hintCountEl = $('#hintCount');
+
+function randInt(n){ return Math.floor(Math.random()*n); }
+function choice(a){ return a[randInt(a.length)]; }
+function clamp(n,min,max){return Math.max(min,Math.min(max,n));}
+function escapeHtml(s){ return s.replace(/[&<>"']/g, c=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]) ); }
+
+function setStars(n){ stars=n; starsEl.textContent=stars; }
+function addStars(n){ setStars(stars+n); }
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]] } return a; }
+
+/*************** Wordsearch Generation ****************/
+const DIRS = [ [0,1],[1,0],[0,-1],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1] ];
+
+function newBoard(topic){
+  board = Array.from({length:SIZE},()=>Array.from({length:SIZE},()=>''));
+  words = [];
+  const wlist = shuffle(topic.words.slice()).slice(0, Math.min(10, topic.words.length));
+  for(const W of wlist){ placeWord(W); }
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  for(let r=0;r<SIZE;r++) for(let c=0;c<SIZE;c++) if(!board[r][c]) board[r][c]=letters[randInt(letters.length)];
+}
+
+function placeWord(word){
+  const upper = word.toUpperCase();
+  for(let attempt=0;attempt<400;attempt++){
+    const dir = choice(DIRS); const len = upper.length;
+    let r = randInt(SIZE), c = randInt(SIZE);
+    const rr = r + dir[0]*(len-1), cc = c + dir[1]*(len-1);
+    if(rr<0||rr>=SIZE||cc<0||cc>=SIZE) continue;
+    let ok=true; let positions=[];
+    for(let i=0;i<len;i++){
+      const R = r+dir[0]*i, C = c+dir[1]*i; const ch = board[R][C];
+      if(ch && ch!==upper[i]){ ok=false; break; }
+      positions.push({r:R,c:C});
+    }
+    if(!ok) continue;
+    positions.forEach((p,i)=> board[p.r][p.c] = upper[i]);
+    words.push({text:upper, positions, found:false});
+    return true;
+  }
+  return false;
+}
+
+/*************** Rendering ****************/
+function renderBoard(){
+  boardEl.innerHTML='';
+  for(let r=0;r<SIZE;r++){
+    for(let c=0;c<SIZE;c++){
+      const d=document.createElement('div');
+      d.className='cell'; d.dataset.r=r; d.dataset.c=c; d.textContent=escapeHtml(board[r][c]);
+      boardEl.appendChild(d);
+    }
+  }
+}
+
+function renderWordList(){
+  listEl.innerHTML='';
+  for(const w of words){
+    const d=document.createElement('div'); d.className='word'+(w.found?' found':''); d.textContent=w.text; listEl.appendChild(d);
+  }
+}
+
+function updateFound(){
+  const found = words.filter(w=>w.found).length; foundEl.textContent = found + '/' + words.length;
+}
+
+/*************** Selection Logic ****************/
+function cellFromEvent(e){ const t=(e.target && e.target.closest)? e.target.closest('.cell') : null; if(!t) return null; return {r: +t.dataset.r, c: +t.dataset.c, el:t}; }
+function delta(a,b){ return {dr: Math.sign(b.r-a.r), dc: Math.sign(b.c-a.c)}; }
+function line(a,b){ const d=delta(a,b); // lock straight line
+  const len=Math.max(Math.abs(b.r-a.r),Math.abs(b.c-a.c)); const pts=[]; for(let i=0;i<=len;i++){ pts.push({r:a.r+d.dr*i,c:a.c+d.dc*i}); } return pts; }
+function equalPath(p1,p2){ if(p1.length!==p2.length) return false; for(let i=0;i<p1.length;i++){ if(p1[i].r!==p2[i].r||p1[i].c!==p2[i].c) return false; } return true; }
+
+function startSelect(e){ const cell=cellFromEvent(e); if(!cell) return; selecting=true; startCell=cell; path=[cell]; dirLock=null; highlightPath(path); }
+function moveSelect(e){ if(!selecting) return; const cell=cellFromEvent(e); if(!cell) return; // lock to first non-zero direction
+  if(!dirLock){ const d=delta(startCell, cell); if(d.dr!==0||d.dc!==0) dirLock=d; }
+  let end=cell; if(dirLock){ // project to line along locked direction
+    const dr=dirLock.dr, dc=dirLock.dc; const diffR=cell.r-startCell.r, diffC=cell.c-startCell.c;
+    const steps = Math.max(Math.abs(diffR), Math.abs(diffC)); end = {r:startCell.r+dr*steps, c:startCell.c+dc*steps, el:cell.el};
+    end.r=clamp(end.r,0,SIZE-1); end.c=clamp(end.c,0,SIZE-1);
+  }
+  path=line(startCell, end); highlightPath(path); }
+function endSelect(){ if(!selecting) return; selecting=false; checkSelection(path); clearSel(); path=[]; dirLock=null; }
+
+function highlightPath(p){ clearSel(); for(const pt of p){ const idx=pt.r*SIZE+pt.c; const el=boardEl.children[idx]; el.classList.add('sel'); } }
+function clearSel(){ for(const el of boardEl.children) el.classList.remove('sel'); }
+
+function checkSelection(p){
+  for(const w of words){ if(w.found) continue; const fwd = equalPath(p, w.positions); const rev = equalPath(p.slice().reverse(), w.positions); if(fwd||rev){ w.found=true; for(const pt of w.positions){ const el=boardEl.children[pt.r*SIZE+pt.c]; el.classList.add('good'); el.style.filter='drop-shadow(0 0 10px #22c55eAA)'; setTimeout(()=> el.style.filter='', 800); }
+      renderWordList(); updateFound(); addStars(1); maybeEnd(); return; } }
+}
+
+function maybeEnd(){ if(words.every(w=>w.found)){ gameOver(true); } }
+
+/*************** Timers ****************/
+function setTimer(seconds){ clearInterval(timer); remain = seconds; frozen=false; updateTimerUI(); timer=setInterval(()=>{ if(!frozen){ remain--; if(remain<=0){ remain=0; clearInterval(timer); gameOver(false);} updateTimerUI(); } },1000); }
+function updateTimerUI(){ const m=String(Math.floor(remain/60)).padStart(2,'0'); const s=String(remain%60).padStart(2,'0'); timeEl.textContent=`${m}:${s}`; }
+
+/*************** UI Flow ****************/
+const menu = $('#menu'); const loading = $('#loading'); const game = $('#game');
+$('#beginBtn').addEventListener('click', startRun);
+function startRun(){
+  show(menu,false); show(loading,true);
+  fancyLoading(1400).then(()=>{
+    pickTopic();
+    newBoard(currentTopic); renderBoard(); renderWordList(); updateFound(); diffEl.textContent = difficulty;
+    show(loading,false); show(game,true);
+  });
+}
+
+function pickTopic(){ let idx = randInt(PRESETS.length); if(idx===topicIdxLast) idx=(idx+1)%PRESETS.length; topicIdxLast=idx; currentTopic = PRESETS[idx]; topicEl.textContent = currentTopic.name; }
+
+$('#storeBtn').addEventListener('click',()=> showModal('#store',true));
+$('#closeStore').addEventListener('click',()=> showModal('#store',false));
+
+// buy buttons
+for(const b of document.querySelectorAll('.buy')){ b.addEventListener('click',()=>{
+  const item=b.dataset.item, cost=+b.dataset.cost; if(stars<cost){ alert('Not enough ⭐'); return; }
+  setStars(stars-cost);
+  if(item==='hints'){ hints+=3; hintCountEl.textContent=hints; }
+  if(item==='freeze'){ freezeCharges+=1; toast('Freeze Time ready.'); addFreezeButton(); }
+  if(item==='revealrc'){ revealCharges+=1; toast('Reveal Row/Col ready.'); addRevealButton(); }
+}); }
+
+// timer choices
+$('#choose1').onclick=()=>{ setTimer(60); difficulty='Easy'; diffEl.textContent=difficulty; };
+$('#choose5').onclick=()=>{ setTimer(300); difficulty='Normal'; diffEl.textContent=difficulty; };
+$('#choose10').onclick=()=>{ setTimer(600); difficulty='Hard'; diffEl.textContent=difficulty; };
+
+// hints
+$('#useHint').onclick=()=>{
+  if(hints<=0){ alert('No hints available. Buy in the store.'); return; }
+  const targets = words.filter(w=>!w.found); if(!targets.length){ alert('All words found!'); return; }
+  const w = choice(targets); const first = w.positions[0]; const el=boardEl.children[first.r*SIZE+first.c];
+  hintPulse(el); hints--; hintCountEl.textContent=hints;
+};
+
+$('#backMenu').onclick=()=>{ toMenu(); };
+
+function hintPulse(el){
+  const ring=document.createElement('div'); ring.style.position='absolute'; ring.style.inset='-4px'; ring.style.border='3px solid #22d3ee'; ring.style.borderRadius='10px'; ring.style.filter='drop-shadow(0 0 12px #22d3ee)'; ring.style.animation='ring 1.2s ease-out 1';
+  const style=document.createElement('style'); style.textContent='@keyframes ring{0%{opacity:1;transform:scale(.9)}100%{opacity:0;transform:scale(1.4)}}'; document.head.appendChild(style);
+  el.appendChild(ring); setTimeout(()=> ring.remove(), 1200);
+}
+
+/*************** Freeze & Reveal Buttons (appear when bought) ***************/
+function addFreezeButton(){ if(document.getElementById('freezeBtn')) return; const b=document.createElement('button'); b.className='btn ghost'; b.id='freezeBtn'; b.textContent='Freeze 10s'; document.querySelector('.side').appendChild(b); b.onclick=()=>{ if(freezeCharges<=0){ alert('No charges left'); return;} frozen=true; b.disabled=true; const old=timeEl.textContent; timeEl.style.color='#a7f3d0'; setTimeout(()=>{ frozen=false; timeEl.style.color=''; b.disabled=false; freezeCharges--; if(freezeCharges<=0) b.remove(); }, 10000); } }
+function addRevealButton(){ if(document.getElementById('revealBtn')) return; const b=document.createElement('button'); b.className='btn ghost'; b.id='revealBtn'; b.textContent='Reveal Row/Col'; document.querySelector('.side').appendChild(b); b.onclick=()=>{ if(revealCharges<=0){ alert('No charges left'); return;} revealCharges--; const t = choice(words.filter(w=>!w.found)); if(!t){ toast('Nothing to reveal'); b.remove(); return; }
+  const r = t.positions[0].r, c=t.positions[0].c; flashLine('row', r); flashLine('col', c); if(revealCharges<=0) b.remove(); } }
+
+function flashLine(kind, idx){
+  const cells=[]; if(kind==='row'){ for(let c=0;c<SIZE;c++) cells.push(boardEl.children[idx*SIZE+c]); } else { for(let r=0;r<SIZE;r++) cells.push(boardEl.children[r*SIZE+idx]); }
+  let i=0; const iv=setInterval(()=>{ if(i>cells.length){ clearInterval(iv); return;} cells.forEach((el,j)=>{ el.style.boxShadow = j===i? '0 0 0 2px #fbbf24, 0 0 14px #facc15aa' : '' }); i++; },40); setTimeout(()=> cells.forEach(el=> el.style.boxShadow=''), 1500);
+}
+
+/*************** Events: Selection ***************/
+boardEl.addEventListener('mousedown', startSelect);
+boardEl.addEventListener('mousemove', moveSelect);
+window.addEventListener('mouseup', endSelect);
+boardEl.addEventListener('touchstart', (e)=>{ e.preventDefault(); startSelect(e.touches[0]); });
+boardEl.addEventListener('touchmove', (e)=>{ e.preventDefault(); moveSelect(e.touches[0]); });
+window.addEventListener('touchend', endSelect);
+
+/*************** Loading Fancy ***************/
+function fancyLoading(ms){
+  const phrases=['Hashing consonants…','Warming up vowels…','Untangling anagrams…','Sharpening pencils…','Gluing letters to grid…'];
+  const el=$('#loadFancy'); let i=0; const iv=setInterval(()=>{ el.textContent=phrases[i%phrases.length]; i++; },500);
+  return new Promise(res=> setTimeout(()=>{ clearInterval(iv); res(); }, ms));
+}
+
+/*************** Admin Panel ***************/
+$('#adminBtn').onclick=()=> showModal('#adminModal',true);
+$('#adminCancel').onclick=()=> showModal('#adminModal',false);
+$('#adminSubmit').onclick=()=>{
+  if($('#adminKey').value.trim()==='Alex'){
+    showModal('#adminModal',false); enableFab(); toast('Admin unlocked. Drag the ADM button; click to expand.');
+  }else toast('Wrong key.');
+};
+
+function enableFab(){ const fab=$('#fab'); fab.style.display='flex';
+  let dragging=false, sx=0, sy=0, ox=0, oy=0; fab.addEventListener('mousedown',e=>{ if(fab.classList.contains('expanded')) return; dragging=true; sx=e.clientX; sy=e.clientY; const r=fab.getBoundingClientRect(); ox=r.left; oy=r.top; fab.style.cursor='grabbing'; });
+  window.addEventListener('mousemove',e=>{ if(!dragging) return; const x=ox+e.clientX-sx, y=oy+e.clientY-sy; fab.style.left=x+'px'; fab.style.top=y+'px'; fab.style.right='auto'; fab.style.bottom='auto'; });
+  window.addEventListener('mouseup',()=>{ dragging=false; fab.style.cursor='grab'; });
+  fab.addEventListener('click',()=>{
+    if(!fab.classList.contains('expanded')){
+      fab.classList.add('expanded'); fab.innerHTML='<div style="display:flex;gap:8px"><span class="btn ghost" id="doFind">Find all</span><span class="btn ghost" id="doTimer">Timer</span><span class="btn ghost" id="doDestroy">Destroy App</span></div>';
+      $('#doFind').onclick=adminRevealAll; $('#doTimer').onclick=adminTimer; $('#doDestroy').onclick=adminDestroy;
+    }else{ fab.classList.remove('expanded'); fab.textContent='ADM'; }
+  });
+}
+
+function adminRevealAll(){ for(const w of words){ if(w.found) continue; drawPath(w.positions); w.found=true; addStars(1); } renderWordList(); updateFound(); maybeEnd(); }
+function drawPath(pts){ pts.forEach((p,i)=>{ const el=boardEl.children[p.r*SIZE+p.c]; const mark=document.createElement('div'); mark.style.position='absolute'; mark.style.inset='2px'; mark.style.border='2px dashed #a7f3d0'; mark.style.borderRadius='6px'; mark.style.opacity='0'; mark.style.animation='flash .7s ease '+(i*60)+'ms forwards'; el.appendChild(mark); setTimeout(()=> mark.remove(), 1000+i*60); }); const style=document.createElement('style'); style.textContent='@keyframes flash{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}'; document.head.appendChild(style); }
+function adminTimer(){ const s = prompt('Set new timer (seconds):','300'); if(!s) return; const num = Math.max(1, Math.floor(+s||0)); setTimer(num); }
+
+// ===== Nuke cinematic (improved destroy) =====
+function adminDestroy(){
+  const k = prompt('Second passkey required:'); if(k!== 'word'){ toast('Access denied.'); return; }
+  nukeCinematic().then(()=>{
+    // After blast, show corruption screen
+    const root = document.getElementById('appRoot');
+    root.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:70vh;flex-direction:column;gap:12px">\
+      <div style="font-size:clamp(24px,6vw,60px);font-weight:900;color:#ff7b7b">APPLICATION DESTROYED</div>\
+      <button class="btn" onclick="location.reload()">Reboot</button>\
+    </div>';
+  });
+}
+
+function nukeCinematic(){
+  const stage = document.getElementById('nukeStage'); stage.innerHTML=''; stage.style.display='block';
+  // Create SVG bomb
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const bomb = document.createElementNS(svgNS,'svg'); bomb.setAttribute('width','80'); bomb.setAttribute('height','160'); bomb.style.top='-200px'; bomb.innerHTML = `
+    <defs>
+      <linearGradient id="g1" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%" stop-color="#bbb"/><stop offset="100%" stop-color="#555"/>
+      </linearGradient>
+    </defs>
+    <g>
+      <rect x="20" y="0" width="40" height="90" rx="10" fill="url(#g1)" stroke="#222"/>
+      <polygon points="20,0 60,0 40,-20" fill="#888" stroke="#222"/>
+      <circle cx="40" cy="110" r="30" fill="#666" stroke="#222"/>
+      <circle cx="40" cy="110" r="14" fill="#111"/>
+    </g>`;
+  stage.appendChild(bomb);
+
+  // Shockwave circles at ground
+  const shock = document.createElementNS(svgNS,'svg'); shock.setAttribute('width','1000'); shock.setAttribute('height','300'); shock.style.bottom='0'; shock.innerHTML = '<g id="sw"></g>';
+  stage.appendChild(shock);
+
+  const h = window.innerHeight; const groundY = h - 60; // impact near bottom
+
+  return new Promise(res=>{
+    // fall
+    bomb.animate([{transform:'translate(-50%, 0)'},{transform:`translate(-50%, ${groundY}px)`}], {duration: 1600, easing:'cubic-bezier(.1,.8,.1,1)', fill:'forwards'});
+
+    // impact flash & shockwave after delay
+    setTimeout(()=>{
+      document.body.classList.add('shake'); setTimeout(()=> document.body.classList.remove('shake'), 1200);
+      // flash
+      const flash = document.createElement('div'); flash.style.position='fixed'; flash.style.inset='0'; flash.style.background='radial-gradient(circle at 50% 100%, #fff, rgba(255,255,255,0) 60%)'; flash.style.opacity='0'; flash.style.pointerEvents='none'; document.body.appendChild(flash);
+      flash.animate([{opacity:0},{opacity:.9},{opacity:0}],{duration:750, easing:'ease-out'});
+      setTimeout(()=> flash.remove(), 800);
+      // mushroom cloud & rings
+      const g = shock.querySelector('#sw');
+      for(let i=0;i<5;i++){
+        const c = document.createElementNS(svgNS,'circle'); c.setAttribute('cx','500'); c.setAttribute('cy','260'); c.setAttribute('r','10'); c.setAttribute('stroke','#facc15'); c.setAttribute('fill','none'); c.setAttribute('stroke-width','4'); g.appendChild(c);
+        c.animate([{r:10, opacity:0.9},{r:500, opacity:0}],{duration: 1400+ i*150, easing:'ease-out'});
+        setTimeout(()=> c.remove(), 1600 + i*200);
+      }
+      // dust plume
+      const plume = document.createElement('div'); plume.style.position='fixed'; plume.style.left='50%'; plume.style.bottom='0'; plume.style.width='0'; plume.style.height='0'; plume.style.borderLeft='120px solid transparent'; plume.style.borderRight='120px solid transparent'; plume.style.borderBottom='240px solid #f59e0b55'; plume.style.transform='translateX(-50%)'; plume.style.filter='blur(2px)'; stage.appendChild(plume);
+      plume.animate([{opacity:0, transform:'translateX(-50%) scaleY(.6)'},{opacity:1, transform:'translateX(-50%) scaleY(1.05)'},{opacity:0, transform:'translateX(-50%) scaleY(1.2)'}],{duration:1800, easing:'ease-out'});
+
+      setTimeout(()=>{ stage.style.display='none'; stage.innerHTML=''; res(); }, 1900);
+    }, 1600);
+  });
+}
+
+/*************** Game Over ****************/
+function gameOver(allFound){
+  const f = words.filter(w=>w.found).length; const m = words.length - f; addStars(0);
+  const box=$('#overBox'); box.innerHTML=`<div>
+    <div style="font-size:1.4rem;font-weight:900;margin-bottom:6px">${allFound? 'Perfect!' : 'Game Over'}</div>
+    <div style="margin-bottom:10px">You found <strong>${f}</strong> word(s) and missed <strong>${m}</strong>.</div>
+    <div style="margin-bottom:12px">⭐ earned this round: <strong>${f}</strong></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+      <button class="btn" id="again">Play Again</button>
+      <button class="btn ghost" id="nextTopic">Next Topic</button>
+      <button class="btn neutral" id="goMenu">Main Menu</button>
+    </div>
+  </div>`; showModal('#over',true);
+  $('#again').onclick=()=>{ showModal('#over',false); startRun(); };
+  $('#nextTopic').onclick=()=>{ showModal('#over',false); pickTopic(); newBoard(currentTopic); renderBoard(); renderWordList(); updateFound(); };
+  $('#goMenu').onclick=()=>{ showModal('#over',false); toMenu(); };
+}
+
+function toMenu(){ show(game,false); show(loading,false); show(menu,true); }
+
+/*************** Generic UI Helpers ****************/
+function show(elOrSel, on){ const el = (typeof elOrSel==='string')? $(elOrSel) : elOrSel; el.style.display = on? '' : 'none'; }
+function showModal(sel, on){ const el = $(sel); if(on){ el.classList.add('show'); el.setAttribute('aria-hidden','false'); } else { el.classList.remove('show'); el.setAttribute('aria-hidden','true'); } }
+function toast(msg){ const t=document.createElement('div'); t.textContent=msg; t.style.position='fixed'; t.style.inset='auto 20px 20px auto'; t.style.background='#0d163a'; t.style.border='1px solid rgba(255,255,255,.12)'; t.style.padding='12px 14px'; t.style.borderRadius='12px'; t.style.boxShadow='var(--shadow)'; document.body.appendChild(t); setTimeout(()=> t.remove(), 1600); }
+
+/*************** Changelog dialog ***************/
+const logsBtn = document.getElementById('logsBtn'); const changelog = document.getElementById('changelog');
+logsBtn.addEventListener('click', ()=> changelog.showModal());
+Array.from(changelog.querySelectorAll('[data-close]')).forEach(b=> b.addEventListener('click', ()=> changelog.close()));
+
+/*************** Init ****************/
+setStars(0); $('#hintCount').textContent=hints;
+// default difficulty/time
+setTimer(300);
+</script>
+</body>
+</html>
