@@ -2,567 +2,1383 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Word Search – Deluxe v2.0</title>
-<meta name="color-scheme" content="dark light" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Word Search Deluxe – 2027 Cosmic Synapse</title>
+<script src="https://cdn.tailwindcss.com"></script>
 <style>
-  :root{
-    --bg:#0b1020;--bg2:#070b18;--panel:#0f1733cc;--ink:#e5e7eb;--muted:#93a4c2;--accent:#7c3aed;--ac2:#22d3ee;--good:#22c55e;--bad:#ef4444;--gold:#facc15;--ring:#22d3eea6;--shadow:0 20px 40px rgba(0,0,0,.35);--round:18px
+  :root {
+    --bg: #0b1020;
+    --bg2: #070b18;
+    --panel: rgba(15, 23, 51, 0.75);
+    --ink: #e5e7eb;
+    --muted: #93a4c2;
+    --accent: #7c3aed;
+    --ac2: #22d3ee;
+    --good: #10b981;
+    --gold: #facc15;
+    --shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
+    --round: 18px;
   }
-  @media (prefers-color-scheme: light){
-    :root{ --bg:#eef2ff; --bg2:#ffffff; --panel:#ffffffee; --ink:#0b1220; --muted:#475569; --shadow:0 18px 34px rgba(0,0,0,.08) }
+
+  * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+  body {
+    margin: 0;
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: var(--ink);
+    background: radial-gradient(1200px 800px at 15% 15%, #102358 0%, transparent 65%),
+                radial-gradient(1000px 800px at 85% 25%, #0a3b4a 0%, transparent 60%),
+                linear-gradient(180deg, var(--bg), var(--bg2));
+    min-height: 100vh;
+    overflow-x: hidden;
   }
-  *{box-sizing:border-box} html,body{height:100%}
-  body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:var(--ink);background:radial-gradient(1000px 700px at 10% 10%,#102358 0%,transparent 60%),radial-gradient(900px 700px at 90% 20%,#0a3b4a 0%,transparent 55%),linear-gradient(180deg,var(--bg),var(--bg2));}
 
-  .wrap{max-width:1200px;margin:0 auto;padding:24px;display:flex;flex-direction:column;gap:16px;min-height:100%}
-  .card{background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.03));backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.09);border-radius:var(--round);padding:18px;box-shadow:var(--shadow)}
-  header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-  .brand{display:flex;gap:12px;align-items:center}
-  .logo{width:44px;height:44px;border-radius:12px;background:conic-gradient(from 0deg,var(--accent),var(--ac2),var(--accent));box-shadow:0 0 24px #8b5cf658,inset 0 0 30px #22d3ee40;animation:spin 10s linear infinite}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  h1{margin:0;font-size:1.35rem}
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(34, 211, 238, 0.4); }
 
-  .menu{display:grid;grid-template-columns:1fr;gap:12px}
-  .btn{appearance:none;border:none;border-radius:14px;padding:12px 14px;color:white;font-weight:900;letter-spacing:.3px;cursor:pointer;transition:transform .08s ease,filter .18s ease,box-shadow .18s ease;background:linear-gradient(90deg,var(--accent),var(--ac2));box-shadow:0 15px 30px #7c3aed28}
-  .btn:hover{transform:translateY(-1px);filter:brightness(1.04)}
-  .btn:active{transform:translateY(0)}
-  .btn.ghost{background:#192451;border:1px solid rgba(255,255,255,.08);box-shadow:none;color:var(--ink)}
-  .btn.neutral{background:#101a48;border:1px solid rgba(255,255,255,.08);box-shadow:none}
+  .glass-card {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--round);
+    box-shadow: var(--shadow);
+  }
 
-  .grid{display:grid;grid-template-columns:repeat(14, 1fr);gap:6px;user-select:none}
-  .cell{aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;background:#0b1339;border:1px solid rgba(255,255,255,.06);border-radius:8px;font-weight:800;letter-spacing:.3px;position:relative;transition:filter .12s}
-  .cell.mark{background:#0f234d}
-  .cell.sel{outline:2px solid var(--ring)}
-  .cell.good{background:#123f2a;border-color:#2dd46c66}
+  .btn {
+    appearance: none;
+    border: none;
+    border-radius: 12px;
+    padding: 10px 16px;
+    color: white;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+    background: linear-gradient(90deg, var(--accent), var(--ac2));
+    box-shadow: 0 10px 20px rgba(124, 58, 237, 0.25);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.12);
+    box-shadow: 0 14px 26px rgba(34, 211, 238, 0.3);
+  }
+  .btn:active { transform: translateY(0); filter: brightness(0.95); }
+  .btn.ghost {
+    background: rgba(25, 36, 81, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: none;
+    color: var(--ink);
+  }
+  .btn.ghost:hover { background: rgba(35, 50, 110, 0.8); border-color: rgba(34, 211, 238, 0.4); }
+  .btn.danger {
+    background: linear-gradient(90deg, #ef4444, #f43f5e);
+    box-shadow: 0 10px 20px rgba(239, 68, 68, 0.3);
+  }
 
-  .sidebar{display:flex;flex-direction:column;gap:10px}
-  .word{padding:6px 8px;border-radius:10px;background:#0c1740;border:1px solid rgba(255,255,255,.07)}
-  .word.found{text-decoration:line-through;color:#9fe6b6;border-color:#2dd46c66;background:#0f2a1b}
+  /* Grid Canvas Board */
+  .grid-container {
+    display: grid;
+    gap: 4px;
+    user-select: none;
+    position: relative;
+    touch-action: none;
+  }
+  .cell {
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(11, 19, 57, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 8px;
+    font-weight: 800;
+    font-size: clamp(0.75rem, 2vw, 1.25rem);
+    position: relative;
+    transition: background 0.2s, transform 0.1s, border-color 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+  }
+  .cell.wallhack {
+    color: #38bdf8 !important;
+    text-shadow: 0 0 8px #0284c7;
+    background: rgba(14, 165, 233, 0.15) !important;
+  }
+  .cell.sel {
+    background: rgba(34, 211, 238, 0.25);
+    border-color: var(--ac2);
+    box-shadow: inset 0 0 10px rgba(34, 211, 238, 0.5);
+    color: #fff;
+    transform: scale(0.96);
+  }
+  .cell.found-cell {
+    background: rgba(16, 185, 129, 0.25) !important;
+    border-color: rgba(52, 211, 153, 0.6) !important;
+    color: #6ee7b7 !important;
+    text-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+  }
+  .cell.radar-flash {
+    animation: radarGlow 0.6s ease-in-out infinite alternate;
+  }
+  @keyframes radarGlow {
+    from { background: rgba(250, 204, 21, 0.2); border-color: #facc15; box-shadow: 0 0 10px #facc15; }
+    to { background: rgba(245, 158, 11, 0.6); border-color: #f59e0b; box-shadow: 0 0 25px #f59e0b; }
+  }
 
-  .hud{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-  .stat{padding:10px 12px;border-radius:12px;background:#101c49;border:1px solid rgba(255,255,255,.08)}
-  .stat .v{font-size:1.2rem;font-weight:900}
-
-  .flex{display:flex;gap:16px;align-items:stretch}
-  .col{flex:1}
-  .side{width:320px}
-
-  /* Loading stage */
-  .loading{height:260px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;border-radius:16px;background:radial-gradient(400px 200px at 30% 30%,#12245c,transparent),#0b1339}
-  .orbs{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
-  .orb{width:16px;height:16px;border-radius:999px;background:radial-gradient(circle at 30% 30%,#fff,transparent 60%);box-shadow:0 0 20px #fff8}
-  .orbit{position:absolute;animation:orbit 4s linear infinite}
-  .orbit:nth-child(1){width:160px;height:160px}
-  .orbit:nth-child(2){width:220px;height:220px;animation-duration:5s}
-  .orbit:nth-child(3){width:280px;height:280px;animation-duration:6s}
-  @keyframes orbit{to{transform:rotate(360deg)}}
-  .loadtext{font-size:1.2rem;font-weight:900;letter-spacing:.4px;background:linear-gradient(90deg,#fff,#a7f3d0,#93c5fd,#f0abfc,#fff);-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 3s linear infinite}
-  @keyframes shine{to{background-position:600px 0}}
-  .marquee{position:absolute;left:-100%;right:-100%;top:12px;opacity:.35;white-space:nowrap;animation:mar 10s linear infinite}
-  @keyframes mar{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  .word-tag {
+    padding: 6px 12px;
+    border-radius: 10px;
+    background: rgba(12, 23, 64, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    font-weight: 700;
+    font-size: 0.88rem;
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .word-tag.found {
+    text-decoration: line-through;
+    color: #6ee7b7;
+    border-color: rgba(52, 211, 153, 0.4);
+    background: rgba(15, 42, 27, 0.8);
+    transform: scale(0.98);
+  }
 
   /* Modals */
-  .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.5)}
-  .modal .box{width:min(560px, 95vw);background:#0e1738;border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:18px}
-  .modal.show{display:flex}
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(4, 7, 18, 0.8);
+    backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    z-index: 100;
+  }
+  .modal-backdrop.active { display: flex; animation: fadeIn 0.2s ease-out; }
+  @keyframes fadeIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
 
-  /* Game Over */
-  .center{display:flex;align-items:center;justify-content:center;min-height:180px;text-align:center}
+  /* Nuke Stage Canvas Layer */
+  #nukeCanvas {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 999;
+    display: none;
+  }
+  .glitch-screen {
+    animation: screenShake 0.1s infinite alternate;
+    filter: hue-rotate(90deg) contrast(150%);
+  }
+  @keyframes screenShake {
+    0% { transform: translate(3px, 2px) rotate(0deg); }
+    100% { transform: translate(-3px, -2px) rotate(0.5deg); }
+  }
 
-  /* Changelog */
-  dialog{border:none;border-radius:16px;padding:0;max-width:720px;width:clamp(320px, 80vw, 720px);background:#0e1738;color:var(--ink);box-shadow:var(--shadow)}
-  dialog::backdrop{background:rgba(0,0,0,.5);backdrop-filter:blur(2px)}
-  .modal-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.08)}
-  .modal-body{padding:16px 18px;max-height:70vh;overflow:auto}
-
-  /* Nuke animation */
-  #nukeStage{position:fixed;inset:0;pointer-events:none;display:none}
-  #nukeStage svg{position:absolute;left:50%;transform:translateX(-50%);}
-  .shake{animation:shake .6s linear 4}
-  @keyframes shake{0%,100%{transform:translate(0)}25%{transform:translate(2px,-2px)}50%{transform:translate(-2px,2px)}75%{transform:translate(1px,1px)}}
-
-  @media(max-width:980px){.flex{flex-direction:column}.side{width:auto}.hud{grid-template-columns:1fr 1fr}}
+  /* Icy Freeze HUD Effect */
+  .icy-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: var(--round);
+    box-shadow: inset 0 0 35px #38bdf8;
+    background: radial-gradient(circle, transparent 60%, rgba(56, 189, 248, 0.15) 100%);
+    animation: icePulse 1.5s infinite alternate;
+  }
+  @keyframes icePulse {
+    from { opacity: 0.6; } to { opacity: 1; }
+  }
 </style>
 </head>
 <body>
-  <div class="wrap" id="appRoot">
-    <header class="card">
-      <div class="brand">
-        <div class="logo" aria-hidden="true"></div>
+
+  <!-- Fullscreen Nuke WebGL/2D Canvas Overlay -->
+  <canvas id="nukeCanvas"></canvas>
+
+  <div class="max-w-7xl mx-auto p-4 md:p-6 flex flex-col gap-5 min-h-screen" id="appRoot">
+    
+    <!-- Top Header Navigation Bar -->
+    <header class="glass-card p-4 md:p-5 flex flex-wrap justify-between items-center gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-purple-600 via-cyan-400 to-indigo-600 shadow-[0_0_20px_rgba(124,58,237,0.5)] animate-spin-slow flex items-center justify-center font-black text-xl text-white">
+          W
+        </div>
         <div>
-          <h1>Word Search – Deluxe <span style="opacity:.6">v2.0</span></h1>
-          <div style="color:var(--muted)">Find words, earn ⭐ stars, and shop power‑ups. Admins… have toys.</div>
+          <h1 class="text-xl md:text-2xl font-black tracking-tight bg-gradient-to-r from-white via-cyan-200 to-purple-300 bg-clip-text text-transparent">
+            Word Search Deluxe <span class="text-xs px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">v3.0 Cosmic</span>
+          </h1>
+          <p class="text-xs md:text-sm text-slate-400">Discover hidden cosmic terms, acquire stellar power-ups, & conquer grids.</p>
         </div>
       </div>
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <button class="btn ghost" id="logsBtn" aria-haspopup="dialog" aria-controls="changelog">Update Logs</button>
-        <div class="stat" style="display:flex;gap:10px;align-items:center"><span>⭐ Stars:</span><span class="v" id="stars">0</span></div>
+
+      <div class="flex items-center gap-3 flex-wrap">
+        <button class="btn ghost text-xs md:text-sm" id="logsBtn">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+          Changelog
+        </button>
+        <button class="btn ghost text-xs md:text-sm" id="statsBtn">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+          Stats
+        </button>
+        <div class="px-4 py-2 rounded-xl bg-slate-900/80 border border-amber-500/30 flex items-center gap-2 shadow-inner">
+          <span class="text-amber-400 text-lg">⭐</span>
+          <span class="font-black text-amber-300 text-base md:text-lg" id="starCounter">0</span>
+        </div>
       </div>
     </header>
 
-    <!-- Main Menu -->
-    <section id="menu" class="card menu" role="region" aria-label="Main menu">
-      <button class="btn" id="beginBtn">Begin Searching</button>
-      <button class="btn ghost" id="storeBtn">Power‑Up Store</button>
-      <button class="btn ghost" id="adminBtn">Admin Panel</button>
-    </section>
-
-    <!-- Loading Stage -->
-    <section id="loading" class="card loading" style="display:none">
-      <div class="orbs">
-        <div class="orbit"><div class="orb"></div></div>
-        <div class="orbit"><div class="orb"></div></div>
-        <div class="orbit"><div class="orb"></div></div>
-      </div>
-      <div class="marquee">
-        <span style="margin-right:40px">Initializing Lexicon Matrix ░▒▓</span>
-        <span style="margin-right:40px">Spinning Semantic Gyros ▶▶</span>
-        <span style="margin-right:40px">Calibrating Alphabet Soup 🍲</span>
-      </div>
-      <div class="loadtext" id="loadFancy">Compiling puzzle…</div>
-    </section>
-
-    <!-- Game HUD + Board -->
-    <section id="game" class="card" style="display:none">
-      <div class="hud" style="margin-bottom:10px">
-        <div class="stat"><div>Timer <div class="v" id="time">00:00</div></div></div>
-        <div class="stat"><div>Found <div class="v" id="found">0</div></div></div>
-        <div class="stat"><div>Topic <div class="v" id="topic">—</div></div></div>
-        <div class="stat"><div>Difficulty <div class="v" id="diff">Normal</div></div></div>
+    <!-- MAIN MENU VIEW -->
+    <section id="menuView" class="glass-card p-6 md:p-8 flex flex-col gap-6">
+      <div class="text-center max-w-2xl mx-auto space-y-2">
+        <h2 class="text-2xl md:text-3xl font-black text-white">Select Mission Mode</h2>
+        <p class="text-sm text-slate-400">Choose a predefined lexicon topic or build your custom search matrix.</p>
       </div>
 
-      <div class="flex">
-        <div class="col">
-          <div id="board" class="grid" aria-label="word search board"></div>
+      <!-- Difficulty Selector -->
+      <div class="flex justify-center items-center gap-3">
+        <span class="text-sm font-bold text-slate-400">Grid Size:</span>
+        <div class="inline-flex rounded-xl p-1 bg-slate-900/80 border border-white/10" id="diffSelector">
+          <button class="px-3 py-1.5 text-xs md:text-sm rounded-lg font-bold transition text-slate-400 hover:text-white" data-diff="Easy">Easy (12x12)</button>
+          <button class="px-3 py-1.5 text-xs md:text-sm rounded-lg font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40" data-diff="Normal">Normal (14x14)</button>
+          <button class="px-3 py-1.5 text-xs md:text-sm rounded-lg font-bold transition text-slate-400 hover:text-white" data-diff="Hard">Hard (16x16)</button>
         </div>
-        <aside class="side sidebar">
-          <div style="font-weight:900">Find these words</div>
-          <div id="wordList"></div>
-          <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
-            <button class="btn" id="choose1">1 min</button>
-            <button class="btn" id="choose5">5 min</button>
-            <button class="btn" id="choose10">10 min</button>
-          </div>
-          <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
-            <button class="btn ghost" id="useHint">Use Hint (x<span id="hintCount">0</span>)</button>
-            <button class="btn neutral" id="backMenu">Main Menu</button>
-          </div>
-        </aside>
+      </div>
+
+      <!-- Action Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <button class="btn py-5 text-base flex flex-col items-center gap-2" id="launchPresetBtn">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <span>Launch Random Preset</span>
+        </button>
+
+        <button class="btn ghost py-5 text-base flex flex-col items-center gap-2" id="openCustomModalBtn">
+          <svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 012.828 0L20.586 7.586a2 2 0 010 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+          <span>Custom Lexicon Builder</span>
+        </button>
+
+        <button class="btn ghost py-5 text-base flex flex-col items-center gap-2" id="openStoreBtn">
+          <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+          <span>Power-Up Arsenal</span>
+        </button>
+      </div>
+
+      <!-- Preset Category Badges -->
+      <div class="mt-4">
+        <h3 class="text-xs font-black uppercase tracking-wider text-slate-400 mb-3">Available Preset Topics (20+)</h3>
+        <div class="flex flex-wrap gap-2" id="presetTopicBadges"></div>
       </div>
     </section>
 
-    <!-- Store Modal -->
-    <div id="store" class="modal" aria-hidden="true">
-      <div class="box">
-        <h3 style="margin:6px 0 10px 0">Power‑Up Store</h3>
-        <div style="color:var(--muted);margin-bottom:10px">Spend ⭐ to gain an edge.</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
-          <div class="card">
-            <div style="font-weight:900;margin-bottom:8px">3 Hints</div>
-            <div style="color:var(--muted);margin-bottom:8px">Highlights the first letter of a random hidden word.</div>
-            <button class="btn buy" data-item="hints" data-cost="3">Buy for 3⭐</button>
+    <!-- LOADING SCREEN -->
+    <section id="loadingView" class="glass-card p-12 hidden flex-col items-center justify-center text-center relative overflow-hidden min-h-[350px]">
+      <div class="absolute inset-0 pointer-events-none opacity-20">
+        <div class="w-64 h-64 rounded-full border border-cyan-500/40 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-ping"></div>
+      </div>
+      <div class="relative z-10 space-y-4">
+        <div class="w-16 h-16 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
+        <h3 class="text-xl font-bold bg-gradient-to-r from-white to-cyan-300 bg-clip-text text-transparent" id="loadStatusText">Compiling Lexicon Grid...</h3>
+        <p class="text-xs text-slate-400 font-mono" id="loadSubText">Generating 8-directional straight vectors...</p>
+      </div>
+    </section>
+
+    <!-- ACTIVE GAME VIEW -->
+    <section id="gameView" class="glass-card p-4 md:p-6 hidden flex-col gap-4 relative">
+      <div id="icyEffect" class="icy-overlay hidden"></div>
+
+      <!-- HUD Header -->
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <div class="bg-slate-900/80 border border-white/10 rounded-xl p-3 text-center">
+          <div class="text-xs text-slate-400 font-bold">TIMER</div>
+          <div class="text-lg md:text-xl font-black text-cyan-300" id="timerDisplay">05:00</div>
+        </div>
+        <div class="bg-slate-900/80 border border-white/10 rounded-xl p-3 text-center">
+          <div class="text-xs text-slate-400 font-bold">FOUND</div>
+          <div class="text-lg md:text-xl font-black text-emerald-400" id="foundDisplay">0 / 0</div>
+        </div>
+        <div class="bg-slate-900/80 border border-white/10 rounded-xl p-3 text-center col-span-2 md:col-span-1">
+          <div class="text-xs text-slate-400 font-bold">TOPIC</div>
+          <div class="text-sm md:text-base font-bold text-amber-300 truncate" id="topicDisplay">—</div>
+        </div>
+        <div class="bg-slate-900/80 border border-white/10 rounded-xl p-3 text-center">
+          <div class="text-xs text-slate-400 font-bold">GRID</div>
+          <div class="text-sm md:text-base font-bold text-purple-300" id="gridDiffDisplay">Normal</div>
+        </div>
+        <div class="bg-slate-900/80 border border-white/10 rounded-xl p-3 text-center flex items-center justify-center">
+          <button class="btn ghost py-1 px-3 text-xs" id="surrenderBtn">Main Menu</button>
+        </div>
+      </div>
+
+      <!-- Main Play Layout -->
+      <div class="flex flex-col lg:flex-row gap-6 items-start">
+        <!-- Grid Board -->
+        <div class="w-full lg:w-3/5 flex flex-col items-center">
+          <div id="gridBoard" class="grid-container w-full max-w-[580px]"></div>
+        </div>
+
+        <!-- Sidebar Target List & Power-Ups -->
+        <div class="w-full lg:w-2/5 flex flex-col gap-4">
+          <div class="bg-slate-900/60 border border-white/10 rounded-xl p-4 flex flex-col gap-3">
+            <div class="flex justify-between items-center">
+              <h3 class="font-black text-sm uppercase tracking-wider text-slate-300">Target Words</h3>
+              <span class="text-xs text-slate-400 font-mono" id="wordProgressPercent">0%</span>
+            </div>
+            <div id="wordListContainer" class="grid grid-cols-2 gap-2 max-h-[260px] overflow-y-auto pr-1"></div>
           </div>
-          <div class="card">
-            <div style="font-weight:900;margin-bottom:8px">Freeze Time (10s)</div>
-            <div style="color:var(--muted);margin-bottom:8px">Pause the countdown for ten precious seconds.</div>
-            <button class="btn buy" data-item="freeze" data-cost="4">Buy for 4⭐</button>
-          </div>
-          <div class="card">
-            <div style="font-weight:900;margin-bottom:8px">Reveal Row</div>
-            <div style="color:var(--muted);margin-bottom:8px">Draws attention to a row/column containing a word.</div>
-            <button class="btn buy" data-item="revealrc" data-cost="5">Buy for 5⭐</button>
+
+          <!-- Active Power-Up Quick Tray -->
+          <div class="bg-slate-900/60 border border-white/10 rounded-xl p-4 flex flex-col gap-3">
+            <h3 class="font-black text-sm uppercase tracking-wider text-slate-300">Power-Up Tray</h3>
+            <div class="grid grid-cols-2 gap-2" id="powerUpTray">
+              <button class="btn ghost text-xs justify-between" id="useHintBtn">
+                <span>💡 Hint (<span id="hintCount">0</span>)</span>
+              </button>
+              <button class="btn ghost text-xs justify-between" id="useFreezeBtn">
+                <span>❄️ Freeze (<span id="freezeCount">0</span>)</span>
+              </button>
+              <button class="btn ghost text-xs justify-between" id="useRadarBtn">
+                <span>📡 Radar (<span id="radarCount">0</span>)</span>
+              </button>
+              <button class="btn ghost text-xs justify-between" id="usePulseBtn">
+                <span>🎯 Pulse (<span id="pulseCount">0</span>)</span>
+              </button>
+            </div>
           </div>
         </div>
-        <div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="btn ghost" id="closeStore">Close</button></div>
       </div>
-    </div>
+    </section>
 
-    <!-- Admin Modal -->
-    <div id="adminModal" class="modal" aria-hidden="true">
-      <div class="box">
-        <h3 style="margin:6px 0 10px 0">Admin Panel Access</h3>
-        <div style="color:var(--muted);margin-bottom:10px">Enter passkey to unlock admin powers.</div>
-        <input id="adminKey" placeholder="Passkey" class="btn ghost" style="width:100%;background:#132051;padding:12px;border-radius:10px" />
-        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
-          <button class="btn" id="adminSubmit">Unlock</button>
-          <button class="btn ghost" id="adminCancel">Cancel</button>
+  </div>
+
+  <!-- FLOATING ADMIN BUTTON (FAB) -->
+  <button id="adminFab" class="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-gradient-to-tr from-purple-600 to-cyan-400 font-black text-white text-xs shadow-[0_10px_25px_rgba(0,0,0,0.5)] z-50 flex items-center justify-center border border-white/20 hover:scale-110 active:scale-95 transition-transform cursor-grab">
+    ADM
+  </button>
+
+  <!-- STORE MODAL -->
+  <div id="storeModal" class="modal-backdrop">
+    <div class="glass-card w-full max-w-2xl p-6 flex flex-col gap-5">
+      <div class="flex justify-between items-center border-b border-white/10 pb-3">
+        <div>
+          <h2 class="text-xl font-black text-white">Power-Up Arsenal</h2>
+          <p class="text-xs text-slate-400">Exchange earned ⭐ stars for tactical game enhancements.</p>
+        </div>
+        <button class="btn ghost text-xs p-2" data-close-modal="storeModal">✕</button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-1">
+        <!-- Item 1 -->
+        <div class="p-4 rounded-xl bg-slate-900/80 border border-white/10 flex flex-col justify-between gap-3">
+          <div>
+            <div class="flex justify-between items-center font-bold text-white mb-1">
+              <span>💡 Hint Pack (+3)</span>
+              <span class="text-amber-400 text-xs">3 ⭐</span>
+            </div>
+            <p class="text-xs text-slate-400">Highlights the starting letter of a random remaining hidden word.</p>
+          </div>
+          <button class="btn text-xs w-full buy-btn" data-item="hint" data-cost="3">Acquire Pack</button>
+        </div>
+
+        <!-- Item 2 -->
+        <div class="p-4 rounded-xl bg-slate-900/80 border border-white/10 flex flex-col justify-between gap-3">
+          <div>
+            <div class="flex justify-between items-center font-bold text-white mb-1">
+              <span>❄️ Quantum Freeze</span>
+              <span class="text-amber-400 text-xs">4 ⭐</span>
+            </div>
+            <p class="text-xs text-slate-400">Halts the countdown clock for 15 full seconds with icy visual stabilization.</p>
+          </div>
+          <button class="btn text-xs w-full buy-btn" data-item="freeze" data-cost="4">Acquire Charge</button>
+        </div>
+
+        <!-- Item 3 -->
+        <div class="p-4 rounded-xl bg-slate-900/80 border border-white/10 flex flex-col justify-between gap-3">
+          <div>
+            <div class="flex justify-between items-center font-bold text-white mb-1">
+              <span>📡 Word Radar</span>
+              <span class="text-amber-400 text-xs">5 ⭐</span>
+            </div>
+            <p class="text-xs text-slate-400">Temporarily flashes the full layout of a hidden word for 3 seconds.</p>
+          </div>
+          <button class="btn text-xs w-full buy-btn" data-item="radar" data-cost="5">Acquire Charge</button>
+        </div>
+
+        <!-- Item 4 -->
+        <div class="p-4 rounded-xl bg-slate-900/80 border border-white/10 flex flex-col justify-between gap-3">
+          <div>
+            <div class="flex justify-between items-center font-bold text-white mb-1">
+              <span>🎯 Line Pulse</span>
+              <span class="text-amber-400 text-xs">4 ⭐</span>
+            </div>
+            <p class="text-xs text-slate-400">Flashes glowing row and column indicators pointing toward an target word.</p>
+          </div>
+          <button class="btn text-xs w-full buy-btn" data-item="pulse" data-cost="4">Acquire Charge</button>
+        </div>
+
+        <!-- Item 5 -->
+        <div class="p-4 rounded-xl bg-slate-900/80 border border-white/10 flex flex-col justify-between gap-3">
+          <div>
+            <div class="flex justify-between items-center font-bold text-white mb-1">
+              <span>⏱️ Chrono Boost (+60s)</span>
+              <span class="text-amber-400 text-xs">3 ⭐</span>
+            </div>
+            <p class="text-xs text-slate-400">Instantly injects 60 bonus seconds into your remaining clock timer.</p>
+          </div>
+          <button class="btn text-xs w-full buy-btn" data-item="chrono" data-cost="3">Acquire (+60s)</button>
+        </div>
+
+        <!-- Item 6 -->
+        <div class="p-4 rounded-xl bg-slate-900/80 border border-white/10 flex flex-col justify-between gap-3">
+          <div>
+            <div class="flex justify-between items-center font-bold text-white mb-1">
+              <span>⚡ Auto-Solve 1 Word</span>
+              <span class="text-amber-400 text-xs">8 ⭐</span>
+            </div>
+            <p class="text-xs text-slate-400">Instantly locates and marks a random un-found target word.</p>
+          </div>
+          <button class="btn text-xs w-full buy-btn" data-item="autoSolve" data-cost="8">Instant Solve</button>
         </div>
       </div>
-    </div>
-
-    <!-- Game Over Modal (returns to main menu) -->
-    <div id="over" class="modal" aria-hidden="true">
-      <div class="box center" id="overBox"></div>
     </div>
   </div>
 
-  <!-- Admin floating button -->
-  <div class="card" id="fab" title="Admin Tools" style="position:fixed;inset:auto 24px 24px auto;width:54px;height:54px;border-radius:999px;background:linear-gradient(90deg,var(--accent),var(--ac2));display:none;align-items:center;justify-content:center;font-weight:900;color:#fff;cursor:grab;box-shadow:0 16px 40px #0008;z-index:50">ADM</div>
+  <!-- CUSTOM TOPIC BUILDER MODAL -->
+  <div id="customModal" class="modal-backdrop">
+    <div class="glass-card w-full max-w-md p-6 flex flex-col gap-4">
+      <div class="flex justify-between items-center border-b border-white/10 pb-3">
+        <h2 class="text-lg font-black text-white">Custom Lexicon Builder</h2>
+        <button class="btn ghost text-xs p-2" data-close-modal="customModal">✕</button>
+      </div>
 
-  <!-- Nuke animation stage -->
-  <div id="nukeStage"></div>
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-400 mb-1">Topic Name</label>
+          <input type="text" id="customTopicTitle" placeholder="e.g. Cyberpunk Terms" class="w-full px-3 py-2 rounded-xl bg-slate-900/90 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-400" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-400 mb-1">Word List (Comma Separated)</label>
+          <textarea id="customWordInput" rows="5" placeholder="NEON, MATRIX, CYBER, SYNAPSE, GLITCH, VECTOR" class="w-full px-3 py-2 rounded-xl bg-slate-900/90 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-400 uppercase"></textarea>
+        </div>
+      </div>
 
-  <!-- Changelog Modal -->
-  <dialog id="changelog" aria-labelledby="changelogTitle">
-    <div class="modal-head">
-      <h2 id="changelogTitle" style="margin:0;font-weight:900">Update Logs — v2.0</h2>
-      <button class="btn ghost" data-close>Close</button>
+      <button class="btn text-xs w-full" id="startCustomGameBtn">Construct & Play Grid</button>
     </div>
-    <div class="modal-body">
-      <h3 style="margin-top:0">Major improvements (no new power-ups, just better everything)</h3>
-      <ul>
-        <li><strong>UI Revamp:</strong> cleaner layout, responsive HUD, light mode support, better contrast.</li>
-        <li><strong>Graphics:</strong> new loading orbits, hint pulses, row/column reveal glow, and an overhauled <em>Destroy App</em> cinematic (falling nuke + shockwave).</li>
-        <li><strong>Controls:</strong> Main Menu button during games, Game Over offers <em>Play Again</em>, <em>Next Topic</em>, or <em>Main Menu</em>—no page reload.</li>
-        <li><strong>Selection:</strong> robust straight‑line detection with direction lock; better touch support.</li>
-        <li><strong>Timer:</strong> accurate countdown with freeze integration; difficulty label.</li>
-        <li><strong>Store:</strong> clearer feedback; buttons appear once purchased; proper depletion handling.</li>
-        <li><strong>Stability:</strong> bounds checks, HTML escape hardening, consistent star accounting, anti‑repeat topics.</li>
-        <li><strong>Accessibility:</strong> ARIA labels, focus outlines, dialogs with proper semantics.</li>
-      </ul>
+  </div>
+
+  <!-- ADMIN PASSKEY MODAL -->
+  <div id="adminPassModal" class="modal-backdrop">
+    <div class="glass-card w-full max-w-sm p-6 flex flex-col gap-4">
+      <h2 class="text-lg font-black text-white">Admin Authentication</h2>
+      <p class="text-xs text-slate-400">Enter master authorization key to unlock operational tools.</p>
+      <input type="password" id="adminPassInput" placeholder="Passkey" class="w-full px-3 py-2 rounded-xl bg-slate-900/90 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-400" />
+      <div class="flex justify-end gap-2">
+        <button class="btn ghost text-xs" data-close-modal="adminPassModal">Cancel</button>
+        <button class="btn text-xs" id="submitAdminPass">Authenticate</button>
+      </div>
     </div>
-  </dialog>
+  </div>
+
+  <!-- ADMIN CONTROL CENTER MODAL -->
+  <div id="adminPanelModal" class="modal-backdrop">
+    <div class="glass-card w-full max-w-lg p-6 flex flex-col gap-4">
+      <div class="flex justify-between items-center border-b border-white/10 pb-3">
+        <h2 class="text-lg font-black text-cyan-300">Admin Command Center</h2>
+        <button class="btn ghost text-xs p-2" data-close-modal="adminPanelModal">✕</button>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <button class="btn ghost text-xs" id="admFindAll">⚡ Find All Words</button>
+        <button class="btn ghost text-xs" id="admWallhack">👁️ Toggle Wallhack</button>
+        <button class="btn ghost text-xs" id="admAddStars">⭐ Inject +100 Stars</button>
+        <button class="btn ghost text-xs" id="admSetTimer">⏱️ Modify Timer</button>
+        <button class="btn ghost text-xs" id="admForceWin">🏆 Force Win</button>
+        <button class="btn ghost text-xs" id="admForceLoss">💀 Force Loss</button>
+      </div>
+
+      <div class="border-t border-white/10 pt-3">
+        <button class="btn danger text-xs w-full" id="admNukeBtn">☢️ Destroy Application (Nuke)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS MODAL -->
+  <div id="statsModal" class="modal-backdrop">
+    <div class="glass-card w-full max-w-md p-6 flex flex-col gap-4">
+      <div class="flex justify-between items-center border-b border-white/10 pb-3">
+        <h2 class="text-lg font-black text-white">Player Records</h2>
+        <button class="btn ghost text-xs p-2" data-close-modal="statsModal">✕</button>
+      </div>
+
+      <div class="space-y-3">
+        <div class="flex justify-between p-3 rounded-xl bg-slate-900/80 text-sm">
+          <span class="text-slate-400">Total Games Played</span>
+          <span class="font-bold text-white" id="statGames">0</span>
+        </div>
+        <div class="flex justify-between p-3 rounded-xl bg-slate-900/80 text-sm">
+          <span class="text-slate-400">Total Words Uncovered</span>
+          <span class="font-bold text-emerald-400" id="statWords">0</span>
+        </div>
+        <div class="flex justify-between p-3 rounded-xl bg-slate-900/80 text-sm">
+          <span class="text-slate-400">Total Stars Accumulated</span>
+          <span class="font-bold text-amber-300" id="statStars">0</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHANGELOG MODAL -->
+  <div id="logsModal" class="modal-backdrop">
+    <div class="glass-card w-full max-w-lg p-6 flex flex-col gap-4">
+      <div class="flex justify-between items-center border-b border-white/10 pb-3">
+        <h2 class="text-lg font-black text-white">Version 3.0 Cosmic Notes</h2>
+        <button class="btn ghost text-xs p-2" data-close-modal="logsModal">✕</button>
+      </div>
+
+      <div class="space-y-3 text-xs text-slate-300 max-h-[50vh] overflow-y-auto pr-1">
+        <p><strong class="text-cyan-300">Canvas 2D Nuclear Engine:</strong> Complete overhaul of the Admin Nuke event with high-FPS particle simulation, shockwave rings, and screen glitch lockdown.</p>
+        <p><strong class="text-cyan-300">Precision Touch & Vector Selection:</strong> Smooth straight-line 8-direction locking with dynamic dragging on touch/mouse inputs.</p>
+        <p><strong class="text-cyan-300">Web Audio Synth:</strong> Zero-dependency real-time synthesized audio feedback for selection, word match fanfare, and nuclear events.</p>
+        <p><strong class="text-cyan-300">Power-Up Arsenal:</strong> Expanded shop introducing Radar, Line Pulse, Quantum Freeze, Chrono Boost, and Auto-Solve items.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- GAME OVER SUMMARY MODAL -->
+  <div id="gameOverModal" class="modal-backdrop">
+    <div class="glass-card w-full max-w-md p-6 flex flex-col items-center text-center gap-4">
+      <div class="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center text-2xl font-black" id="gameOverIcon">
+        🏆
+      </div>
+      <h2 class="text-2xl font-black text-white" id="gameOverTitle">Mission Complete!</h2>
+      <p class="text-sm text-slate-300" id="gameOverBody">You uncovered all target words.</p>
+
+      <div class="w-full p-4 rounded-xl bg-slate-900/80 border border-white/10 flex justify-around text-center">
+        <div>
+          <div class="text-xs text-slate-400">Words Found</div>
+          <div class="text-lg font-bold text-emerald-400" id="goWordsFound">0</div>
+        </div>
+        <div>
+          <div class="text-xs text-slate-400">Stars Earned</div>
+          <div class="text-lg font-bold text-amber-300" id="goStarsEarned">+0</div>
+        </div>
+      </div>
+
+      <div class="flex gap-2 w-full">
+        <button class="btn text-xs flex-1" id="goPlayAgain">Play Again</button>
+        <button class="btn ghost text-xs flex-1" id="goMainMenu">Main Menu</button>
+      </div>
+    </div>
+  </div>
 
 <script>
-/*************** Data ****************/
-const SIZE = 14; // grid size
-let stars = 0; let hints = 0; let freezeCharges = 0; let revealCharges = 0;
-let topicIdxLast = -1;
+/******************************************************************************
+ * WORD SEARCH DELUXE v3.0 - COSMIC SYNAPSE ENGINE
+ ******************************************************************************/
 
+// --- WEB AUDIO SYNTHESIZER ---
+class SoundFx {
+  constructor() {
+    this.ctx = null;
+  }
+  init() {
+    if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  playChime(freq = 440, type = 'sine', duration = 0.15) {
+    if (!this.ctx) return;
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+      gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + duration);
+    } catch(e) {}
+  }
+  playMatch() {
+    if (!this.ctx) return;
+    [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => {
+      setTimeout(() => this.playChime(f, 'triangle', 0.25), i * 80);
+    });
+  }
+  playNukeSound() {
+    if (!this.ctx) return;
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(120, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(30, this.ctx.currentTime + 2.5);
+      gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 2.5);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 2.5);
+    } catch(e) {}
+  }
+}
+const sfx = new SoundFx();
+
+// --- PRESET LEXICON DATA ---
 const PRESETS = [
-  { name:'Animals', words:['TIGER','PANDA','ZEBRA','EAGLE','KOALA','OTTER','CAMEL','WHALE','HORSE','MOUSE'] },
-  { name:'Fruits', words:['APPLE','BANANA','MANGO','ORANGE','PEACH','LEMON','CHERRY','GRAPE','PEAR','PLUM'] },
-  { name:'Planets', words:['MERCURY','VENUS','EARTH','MARS','JUPITER','SATURN','URANUS','NEPTUNE'] },
-  { name:'Programming', words:['JAVASCRIPT','PYTHON','KOTLIN','SWIFT','RUST','GO','JAVA','REACT','ANGULAR'] },
-  { name:'Sports', words:['SOCCER','HOCKEY','CRICKET','RUGBY','BOXING','CYCLING','SKIING','ROWING'] },
-  { name:'Music', words:['GUITAR','PIANO','DRUMS','VIOLIN','TRUMPET','FLUTE','HARP','CELLO'] },
-  { name:'Oceans', words:['PACIFIC','ATLANTIC','INDIAN','ARCTIC','SOUTHERN'] },
-  { name:'Weather', words:['RAIN','SUNNY','CLOUDY','STORM','WIND','SNOW','FOG'] },
-  { name:'Colors', words:['RED','ORANGE','YELLOW','GREEN','BLUE','INDIGO','VIOLET','BLACK','WHITE'] },
-  { name:'Canada', words:['OTTAWA','NORTHBAY','ONTARIO','QUEBEC','PRAIRIES','ROCKIES','MAPLE','BEAVER'] },
-  { name:'Food', words:['PIZZA','BURGER','PASTA','SUSHI','TACO','SALAD','STEAK','SOUP'] },
-  { name:'Jobs', words:['TEACHER','PLUMBER','DOCTOR','NURSE','LAWYER','PILOT','ENGINEER'] },
-  { name:'Cities', words:['TORONTO','CALGARY','MONTREAL','VANCOUVER','WINNIPEG','HALIFAX','OTTAWA'] },
-  { name:'Nature', words:['RIVER','MOUNTAIN','FOREST','DESERT','VALLEY','OCEAN','ISLAND'] },
-  { name:'Space', words:['GALAXY','NEBULA','ASTEROID','COMET','ORBIT','ROVER','PHASE'] },
-  { name:'Tech', words:['LAPTOP','MOBILE','ROBOT','DRONE','SERVER','SENSOR','CLOUD'] },
-  { name:'Vehicles', words:['CAR','TRUCK','TRAIN','BOAT','PLANE','SUBWAY','BICYCLE'] },
-  { name:'Math', words:['ALGEBRA','GEOMETRY','VECTOR','MATRIX','CALCULUS','ANGLE'] },
-  { name:'Clothes', words:['JACKET','SHOES','HAT','GLOVES','JEANS','SWEATER','SCARF'] },
-  { name:'Elements', words:['CARBON','OXYGEN','HYDROGEN','NITROGEN','SODIUM','IRON','GOLD'] }
+  { name: 'Space', words: ['GALAXY', 'NEBULA', 'ASTEROID', 'COMET', 'ORBIT', 'PULSAR', 'QUASAR', 'SUPERNOVA'] },
+  { name: 'Programming', words: ['JAVASCRIPT', 'PYTHON', 'KOTLIN', 'SWIFT', 'RUST', 'REACT', 'ANGULAR', 'COMPILER'] },
+  { name: 'Animals', words: ['LEOPARD', 'DOLPHIN', 'FALCON', 'PANTHER', 'OCTOPUS', 'GIRAFFE', 'CHETAH', 'IGUANA'] },
+  { name: 'Tech', words: ['QUANTUM', 'SYNAPSE', 'ROBOTICS', 'SERVER', 'SATELLITE', 'SILICON', 'NETWORK', 'CIRCUIT'] },
+  { name: 'Cyberpunk', words: ['NEON', 'MATRIX', 'CYBER', 'GLITCH', 'VECTOR', 'HACKER', 'AVATAR', 'CHROME'] },
+  { name: 'Elements', words: ['TITANIUM', 'ARGON', 'LITHIUM', 'KRYPTON', 'PLATINUM', 'URANIUM', 'SILVER', 'GOLD'] },
+  { name: 'Gaming', words: ['ARCADE', 'CONSOLE', 'JOYSTICK', 'POLYGON', 'SPRITE', 'SHADERS', 'HITBOX', 'QUEST'] },
+  { name: 'Sports', words: ['BASEBALL', 'SOCCER', 'CRICKET', 'BOWLING', 'ARCHERY', 'FENCING', 'SURFING', 'SKIING'] },
+  { name: 'Oceans', words: ['ATLANTIC', 'PACIFIC', 'TRENCH', 'CURRENT', 'DOLPHIN', 'CORAL', 'MARINA', 'ISLAND'] },
+  { name: 'Weather', words: ['CYCLONE', 'BLIZZARD', 'THUNDER', 'TORNADO', 'MONSOON', 'AURORA', 'TYPHOON', 'FREEZE'] }
 ];
 
-/*************** State ****************/
-let board = []; // 2D chars
-let words = []; // {text, positions:[{r,c}], found:false}
-let selecting = false; let path=[]; let startCell=null; let dirLock=null; // direction lock for straight lines
-let timer=null; let remain=0; let frozen=false; // freeze power
-let currentTopic = null; let difficulty = 'Normal';
-
-/*************** Helpers ****************/
-const $ = sel => document.querySelector(sel);
-const boardEl = $('#board');
-const listEl = $('#wordList');
-const timeEl = $('#time');
-const foundEl = $('#found');
-const topicEl = $('#topic');
-const diffEl = $('#diff');
-const starsEl = $('#stars');
-const hintCountEl = $('#hintCount');
-
-function randInt(n){ return Math.floor(Math.random()*n); }
-function choice(a){ return a[randInt(a.length)]; }
-function clamp(n,min,max){return Math.max(min,Math.min(max,n));}
-function escapeHtml(s){ return s.replace(/[&<>"']/g, c=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]) ); }
-
-function setStars(n){ stars=n; starsEl.textContent=stars; }
-function addStars(n){ setStars(stars+n); }
-function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]] } return a; }
-
-/*************** Wordsearch Generation ****************/
-const DIRS = [ [0,1],[1,0],[0,-1],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1] ];
-
-function newBoard(topic){
-  board = Array.from({length:SIZE},()=>Array.from({length:SIZE},()=>''));
-  words = [];
-  const wlist = shuffle(topic.words.slice()).slice(0, Math.min(10, topic.words.length));
-  for(const W of wlist){ placeWord(W); }
-  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  for(let r=0;r<SIZE;r++) for(let c=0;c<SIZE;c++) if(!board[r][c]) board[r][c]=letters[randInt(letters.length)];
-}
-
-function placeWord(word){
-  const upper = word.toUpperCase();
-  for(let attempt=0;attempt<400;attempt++){
-    const dir = choice(DIRS); const len = upper.length;
-    let r = randInt(SIZE), c = randInt(SIZE);
-    const rr = r + dir[0]*(len-1), cc = c + dir[1]*(len-1);
-    if(rr<0||rr>=SIZE||cc<0||cc>=SIZE) continue;
-    let ok=true; let positions=[];
-    for(let i=0;i<len;i++){
-      const R = r+dir[0]*i, C = c+dir[1]*i; const ch = board[R][C];
-      if(ch && ch!==upper[i]){ ok=false; break; }
-      positions.push({r:R,c:C});
-    }
-    if(!ok) continue;
-    positions.forEach((p,i)=> board[p.r][p.c] = upper[i]);
-    words.push({text:upper, positions, found:false});
-    return true;
-  }
-  return false;
-}
-
-/*************** Rendering ****************/
-function renderBoard(){
-  boardEl.innerHTML='';
-  for(let r=0;r<SIZE;r++){
-    for(let c=0;c<SIZE;c++){
-      const d=document.createElement('div');
-      d.className='cell'; d.dataset.r=r; d.dataset.c=c; d.textContent=escapeHtml(board[r][c]);
-      boardEl.appendChild(d);
-    }
-  }
-}
-
-function renderWordList(){
-  listEl.innerHTML='';
-  for(const w of words){
-    const d=document.createElement('div'); d.className='word'+(w.found?' found':''); d.textContent=w.text; listEl.appendChild(d);
-  }
-}
-
-function updateFound(){
-  const found = words.filter(w=>w.found).length; foundEl.textContent = found + '/' + words.length;
-}
-
-/*************** Selection Logic ****************/
-function cellFromEvent(e){ const t=(e.target && e.target.closest)? e.target.closest('.cell') : null; if(!t) return null; return {r: +t.dataset.r, c: +t.dataset.c, el:t}; }
-function delta(a,b){ return {dr: Math.sign(b.r-a.r), dc: Math.sign(b.c-a.c)}; }
-function line(a,b){ const d=delta(a,b); // lock straight line
-  const len=Math.max(Math.abs(b.r-a.r),Math.abs(b.c-a.c)); const pts=[]; for(let i=0;i<=len;i++){ pts.push({r:a.r+d.dr*i,c:a.c+d.dc*i}); } return pts; }
-function equalPath(p1,p2){ if(p1.length!==p2.length) return false; for(let i=0;i<p1.length;i++){ if(p1[i].r!==p2[i].r||p1[i].c!==p2[i].c) return false; } return true; }
-
-function startSelect(e){ const cell=cellFromEvent(e); if(!cell) return; selecting=true; startCell=cell; path=[cell]; dirLock=null; highlightPath(path); }
-function moveSelect(e){ if(!selecting) return; const cell=cellFromEvent(e); if(!cell) return; // lock to first non-zero direction
-  if(!dirLock){ const d=delta(startCell, cell); if(d.dr!==0||d.dc!==0) dirLock=d; }
-  let end=cell; if(dirLock){ // project to line along locked direction
-    const dr=dirLock.dr, dc=dirLock.dc; const diffR=cell.r-startCell.r, diffC=cell.c-startCell.c;
-    const steps = Math.max(Math.abs(diffR), Math.abs(diffC)); end = {r:startCell.r+dr*steps, c:startCell.c+dc*steps, el:cell.el};
-    end.r=clamp(end.r,0,SIZE-1); end.c=clamp(end.c,0,SIZE-1);
-  }
-  path=line(startCell, end); highlightPath(path); }
-function endSelect(){ if(!selecting) return; selecting=false; checkSelection(path); clearSel(); path=[]; dirLock=null; }
-
-function highlightPath(p){ clearSel(); for(const pt of p){ const idx=pt.r*SIZE+pt.c; const el=boardEl.children[idx]; el.classList.add('sel'); } }
-function clearSel(){ for(const el of boardEl.children) el.classList.remove('sel'); }
-
-function checkSelection(p){
-  for(const w of words){ if(w.found) continue; const fwd = equalPath(p, w.positions); const rev = equalPath(p.slice().reverse(), w.positions); if(fwd||rev){ w.found=true; for(const pt of w.positions){ const el=boardEl.children[pt.r*SIZE+pt.c]; el.classList.add('good'); el.style.filter='drop-shadow(0 0 10px #22c55eAA)'; setTimeout(()=> el.style.filter='', 800); }
-      renderWordList(); updateFound(); addStars(1); maybeEnd(); return; } }
-}
-
-function maybeEnd(){ if(words.every(w=>w.found)){ gameOver(true); } }
-
-/*************** Timers ****************/
-function setTimer(seconds){ clearInterval(timer); remain = seconds; frozen=false; updateTimerUI(); timer=setInterval(()=>{ if(!frozen){ remain--; if(remain<=0){ remain=0; clearInterval(timer); gameOver(false);} updateTimerUI(); } },1000); }
-function updateTimerUI(){ const m=String(Math.floor(remain/60)).padStart(2,'0'); const s=String(remain%60).padStart(2,'0'); timeEl.textContent=`${m}:${s}`; }
-
-/*************** UI Flow ****************/
-const menu = $('#menu'); const loading = $('#loading'); const game = $('#game');
-$('#beginBtn').addEventListener('click', startRun);
-function startRun(){
-  show(menu,false); show(loading,true);
-  fancyLoading(1400).then(()=>{
-    pickTopic();
-    newBoard(currentTopic); renderBoard(); renderWordList(); updateFound(); diffEl.textContent = difficulty;
-    show(loading,false); show(game,true);
-  });
-}
-
-function pickTopic(){ let idx = randInt(PRESETS.length); if(idx===topicIdxLast) idx=(idx+1)%PRESETS.length; topicIdxLast=idx; currentTopic = PRESETS[idx]; topicEl.textContent = currentTopic.name; }
-
-$('#storeBtn').addEventListener('click',()=> showModal('#store',true));
-$('#closeStore').addEventListener('click',()=> showModal('#store',false));
-
-// buy buttons
-for(const b of document.querySelectorAll('.buy')){ b.addEventListener('click',()=>{
-  const item=b.dataset.item, cost=+b.dataset.cost; if(stars<cost){ alert('Not enough ⭐'); return; }
-  setStars(stars-cost);
-  if(item==='hints'){ hints+=3; hintCountEl.textContent=hints; }
-  if(item==='freeze'){ freezeCharges+=1; toast('Freeze Time ready.'); addFreezeButton(); }
-  if(item==='revealrc'){ revealCharges+=1; toast('Reveal Row/Col ready.'); addRevealButton(); }
-}); }
-
-// timer choices
-$('#choose1').onclick=()=>{ setTimer(60); difficulty='Easy'; diffEl.textContent=difficulty; };
-$('#choose5').onclick=()=>{ setTimer(300); difficulty='Normal'; diffEl.textContent=difficulty; };
-$('#choose10').onclick=()=>{ setTimer(600); difficulty='Hard'; diffEl.textContent=difficulty; };
-
-// hints
-$('#useHint').onclick=()=>{
-  if(hints<=0){ alert('No hints available. Buy in the store.'); return; }
-  const targets = words.filter(w=>!w.found); if(!targets.length){ alert('All words found!'); return; }
-  const w = choice(targets); const first = w.positions[0]; const el=boardEl.children[first.r*SIZE+first.c];
-  hintPulse(el); hints--; hintCountEl.textContent=hints;
+// --- APP STATE ---
+let state = {
+  stars: 0,
+  inventory: { hint: 2, freeze: 1, radar: 1, pulse: 1 },
+  stats: { games: 0, words: 0, starsTotal: 0 },
+  gridSize: 14,
+  difficulty: 'Normal',
+  currentTopic: null,
+  board: [],
+  targetWords: [], // { text, positions:[{r,c}], found:false }
+  selecting: false,
+  startCell: null,
+  dirLock: null,
+  currentPath: [],
+  timer: null,
+  timeRemaining: 300,
+  isFrozen: false,
+  wallhack: false,
+  adminUnlocked: false
 };
 
-$('#backMenu').onclick=()=>{ toMenu(); };
-
-function hintPulse(el){
-  const ring=document.createElement('div'); ring.style.position='absolute'; ring.style.inset='-4px'; ring.style.border='3px solid #22d3ee'; ring.style.borderRadius='10px'; ring.style.filter='drop-shadow(0 0 12px #22d3ee)'; ring.style.animation='ring 1.2s ease-out 1';
-  const style=document.createElement('style'); style.textContent='@keyframes ring{0%{opacity:1;transform:scale(.9)}100%{opacity:0;transform:scale(1.4)}}'; document.head.appendChild(style);
-  el.appendChild(ring); setTimeout(()=> ring.remove(), 1200);
+// --- INITIALIZATION & PERSISTENCE ---
+function loadStorage() {
+  const data = localStorage.getItem('ws_deluxe_v3');
+  if (data) {
+    try {
+      const parsed = JSON.parse(data);
+      state.stars = parsed.stars || 0;
+      state.inventory = { ...state.inventory, ...parsed.inventory };
+      state.stats = { ...state.stats, ...parsed.stats };
+    } catch(e) {}
+  }
+  updateInventoryUI();
+  updateStarDisplay();
 }
 
-/*************** Freeze & Reveal Buttons (appear when bought) ***************/
-function addFreezeButton(){ if(document.getElementById('freezeBtn')) return; const b=document.createElement('button'); b.className='btn ghost'; b.id='freezeBtn'; b.textContent='Freeze 10s'; document.querySelector('.side').appendChild(b); b.onclick=()=>{ if(freezeCharges<=0){ alert('No charges left'); return;} frozen=true; b.disabled=true; const old=timeEl.textContent; timeEl.style.color='#a7f3d0'; setTimeout(()=>{ frozen=false; timeEl.style.color=''; b.disabled=false; freezeCharges--; if(freezeCharges<=0) b.remove(); }, 10000); } }
-function addRevealButton(){ if(document.getElementById('revealBtn')) return; const b=document.createElement('button'); b.className='btn ghost'; b.id='revealBtn'; b.textContent='Reveal Row/Col'; document.querySelector('.side').appendChild(b); b.onclick=()=>{ if(revealCharges<=0){ alert('No charges left'); return;} revealCharges--; const t = choice(words.filter(w=>!w.found)); if(!t){ toast('Nothing to reveal'); b.remove(); return; }
-  const r = t.positions[0].r, c=t.positions[0].c; flashLine('row', r); flashLine('col', c); if(revealCharges<=0) b.remove(); } }
-
-function flashLine(kind, idx){
-  const cells=[]; if(kind==='row'){ for(let c=0;c<SIZE;c++) cells.push(boardEl.children[idx*SIZE+c]); } else { for(let r=0;r<SIZE;r++) cells.push(boardEl.children[r*SIZE+idx]); }
-  let i=0; const iv=setInterval(()=>{ if(i>cells.length){ clearInterval(iv); return;} cells.forEach((el,j)=>{ el.style.boxShadow = j===i? '0 0 0 2px #fbbf24, 0 0 14px #facc15aa' : '' }); i++; },40); setTimeout(()=> cells.forEach(el=> el.style.boxShadow=''), 1500);
+function saveStorage() {
+  localStorage.setItem('ws_deluxe_v3', JSON.stringify({
+    stars: state.stars,
+    inventory: state.inventory,
+    stats: state.stats
+  }));
 }
 
-/*************** Events: Selection ***************/
-boardEl.addEventListener('mousedown', startSelect);
-boardEl.addEventListener('mousemove', moveSelect);
-window.addEventListener('mouseup', endSelect);
-boardEl.addEventListener('touchstart', (e)=>{ e.preventDefault(); startSelect(e.touches[0]); });
-boardEl.addEventListener('touchmove', (e)=>{ e.preventDefault(); moveSelect(e.touches[0]); });
-window.addEventListener('touchend', endSelect);
-
-/*************** Loading Fancy ***************/
-function fancyLoading(ms){
-  const phrases=['Hashing consonants…','Warming up vowels…','Untangling anagrams…','Sharpening pencils…','Gluing letters to grid…'];
-  const el=$('#loadFancy'); let i=0; const iv=setInterval(()=>{ el.textContent=phrases[i%phrases.length]; i++; },500);
-  return new Promise(res=> setTimeout(()=>{ clearInterval(iv); res(); }, ms));
+function updateStarDisplay() {
+  document.getElementById('starCounter').textContent = state.stars;
+  document.getElementById('statStars').textContent = state.stats.starsTotal;
 }
 
-/*************** Admin Panel ***************/
-$('#adminBtn').onclick=()=> showModal('#adminModal',true);
-$('#adminCancel').onclick=()=> showModal('#adminModal',false);
-$('#adminSubmit').onclick=()=>{
-  if($('#adminKey').value.trim()==='Alex'){
-    showModal('#adminModal',false); enableFab(); toast('Admin unlocked. Drag the ADM button; click to expand.');
-  }else toast('Wrong key.');
-};
+function updateInventoryUI() {
+  document.getElementById('hintCount').textContent = state.inventory.hint || 0;
+  document.getElementById('freezeCount').textContent = state.inventory.freeze || 0;
+  document.getElementById('radarCount').textContent = state.inventory.radar || 0;
+  document.getElementById('pulseCount').textContent = state.inventory.pulse || 0;
+}
 
-function enableFab(){ const fab=$('#fab'); fab.style.display='flex';
-  let dragging=false, sx=0, sy=0, ox=0, oy=0; fab.addEventListener('mousedown',e=>{ if(fab.classList.contains('expanded')) return; dragging=true; sx=e.clientX; sy=e.clientY; const r=fab.getBoundingClientRect(); ox=r.left; oy=r.top; fab.style.cursor='grabbing'; });
-  window.addEventListener('mousemove',e=>{ if(!dragging) return; const x=ox+e.clientX-sx, y=oy+e.clientY-sy; fab.style.left=x+'px'; fab.style.top=y+'px'; fab.style.right='auto'; fab.style.bottom='auto'; });
-  window.addEventListener('mouseup',()=>{ dragging=false; fab.style.cursor='grab'; });
-  fab.addEventListener('click',()=>{
-    if(!fab.classList.contains('expanded')){
-      fab.classList.add('expanded'); fab.innerHTML='<div style="display:flex;gap:8px"><span class="btn ghost" id="doFind">Find all</span><span class="btn ghost" id="doTimer">Timer</span><span class="btn ghost" id="doDestroy">Destroy App</span></div>';
-      $('#doFind').onclick=adminRevealAll; $('#doTimer').onclick=adminTimer; $('#doDestroy').onclick=adminDestroy;
-    }else{ fab.classList.remove('expanded'); fab.textContent='ADM'; }
+// --- NAVIGATION & VIEWS ---
+function showView(viewId) {
+  ['menuView', 'loadingView', 'gameView'].forEach(id => {
+    document.getElementById(id).classList.add('hidden');
+  });
+  document.getElementById(viewId).classList.remove('hidden');
+  document.getElementById(viewId).classList.add('flex');
+}
+
+// --- PRESET BADGES RENDER ---
+function renderPresetBadges() {
+  const container = document.getElementById('presetTopicBadges');
+  container.innerHTML = '';
+  PRESETS.forEach(p => {
+    const badge = document.createElement('button');
+    badge.className = 'px-3 py-1.5 rounded-xl bg-slate-900/80 border border-white/10 text-xs text-slate-300 font-bold hover:border-cyan-400 hover:text-white transition';
+    badge.textContent = p.name;
+    badge.onclick = () => launchGame(p);
+    container.appendChild(badge);
   });
 }
 
-function adminRevealAll(){ for(const w of words){ if(w.found) continue; drawPath(w.positions); w.found=true; addStars(1); } renderWordList(); updateFound(); maybeEnd(); }
-function drawPath(pts){ pts.forEach((p,i)=>{ const el=boardEl.children[p.r*SIZE+p.c]; const mark=document.createElement('div'); mark.style.position='absolute'; mark.style.inset='2px'; mark.style.border='2px dashed #a7f3d0'; mark.style.borderRadius='6px'; mark.style.opacity='0'; mark.style.animation='flash .7s ease '+(i*60)+'ms forwards'; el.appendChild(mark); setTimeout(()=> mark.remove(), 1000+i*60); }); const style=document.createElement('style'); style.textContent='@keyframes flash{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}'; document.head.appendChild(style); }
-function adminTimer(){ const s = prompt('Set new timer (seconds):','300'); if(!s) return; const num = Math.max(1, Math.floor(+s||0)); setTimer(num); }
+// --- BOARD GENERATION ALGORITHM ---
+const DIRS = [
+  [0, 1], [1, 0], [0, -1], [-1, 0],
+  [1, 1], [1, -1], [-1, 1], [-1, -1]
+];
 
-// ===== Nuke cinematic (improved destroy) =====
-function adminDestroy(){
-  const k = prompt('Second passkey required:'); if(k!== 'word'){ toast('Access denied.'); return; }
-  nukeCinematic().then(()=>{
-    // After blast, show corruption screen
-    const root = document.getElementById('appRoot');
-    root.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:70vh;flex-direction:column;gap:12px">\
-      <div style="font-size:clamp(24px,6vw,60px);font-weight:900;color:#ff7b7b">APPLICATION DESTROYED</div>\
-      <button class="btn" onclick="location.reload()">Reboot</button>\
-    </div>';
-  });
-}
+function generateGrid(topic) {
+  const N = state.gridSize;
+  state.board = Array.from({ length: N }, () => Array.from({ length: N }, () => ''));
+  state.targetWords = [];
 
-function nukeCinematic(){
-  const stage = document.getElementById('nukeStage'); stage.innerHTML=''; stage.style.display='block';
-  // Create SVG bomb
-  const svgNS = 'http://www.w3.org/2000/svg';
-  const bomb = document.createElementNS(svgNS,'svg'); bomb.setAttribute('width','80'); bomb.setAttribute('height','160'); bomb.style.top='-200px'; bomb.innerHTML = `
-    <defs>
-      <linearGradient id="g1" x1="0" x2="0" y1="0" y2="1">
-        <stop offset="0%" stop-color="#bbb"/><stop offset="100%" stop-color="#555"/>
-      </linearGradient>
-    </defs>
-    <g>
-      <rect x="20" y="0" width="40" height="90" rx="10" fill="url(#g1)" stroke="#222"/>
-      <polygon points="20,0 60,0 40,-20" fill="#888" stroke="#222"/>
-      <circle cx="40" cy="110" r="30" fill="#666" stroke="#222"/>
-      <circle cx="40" cy="110" r="14" fill="#111"/>
-    </g>`;
-  stage.appendChild(bomb);
+  const rawWords = topic.words.slice();
+  // Sort descending by length for better placement fitting
+  rawWords.sort((a, b) => b.length - a.length);
 
-  // Shockwave circles at ground
-  const shock = document.createElementNS(svgNS,'svg'); shock.setAttribute('width','1000'); shock.setAttribute('height','300'); shock.style.bottom='0'; shock.innerHTML = '<g id="sw"></g>';
-  stage.appendChild(shock);
+  for (let wordText of rawWords) {
+    wordText = wordText.toUpperCase().trim();
+    if (!wordText || wordText.length > N) continue;
 
-  const h = window.innerHeight; const groundY = h - 60; // impact near bottom
+    let placed = false;
+    for (let attempts = 0; attempts < 300; attempts++) {
+      const dir = DIRS[Math.floor(Math.random() * DIRS.length)];
+      const r = Math.floor(Math.random() * N);
+      const c = Math.floor(Math.random() * N);
 
-  return new Promise(res=>{
-    // fall
-    bomb.animate([{transform:'translate(-50%, 0)'},{transform:`translate(-50%, ${groundY}px)`}], {duration: 1600, easing:'cubic-bezier(.1,.8,.1,1)', fill:'forwards'});
+      const endR = r + dir[0] * (wordText.length - 1);
+      const endC = c + dir[1] * (wordText.length - 1);
 
-    // impact flash & shockwave after delay
-    setTimeout(()=>{
-      document.body.classList.add('shake'); setTimeout(()=> document.body.classList.remove('shake'), 1200);
-      // flash
-      const flash = document.createElement('div'); flash.style.position='fixed'; flash.style.inset='0'; flash.style.background='radial-gradient(circle at 50% 100%, #fff, rgba(255,255,255,0) 60%)'; flash.style.opacity='0'; flash.style.pointerEvents='none'; document.body.appendChild(flash);
-      flash.animate([{opacity:0},{opacity:.9},{opacity:0}],{duration:750, easing:'ease-out'});
-      setTimeout(()=> flash.remove(), 800);
-      // mushroom cloud & rings
-      const g = shock.querySelector('#sw');
-      for(let i=0;i<5;i++){
-        const c = document.createElementNS(svgNS,'circle'); c.setAttribute('cx','500'); c.setAttribute('cy','260'); c.setAttribute('r','10'); c.setAttribute('stroke','#facc15'); c.setAttribute('fill','none'); c.setAttribute('stroke-width','4'); g.appendChild(c);
-        c.animate([{r:10, opacity:0.9},{r:500, opacity:0}],{duration: 1400+ i*150, easing:'ease-out'});
-        setTimeout(()=> c.remove(), 1600 + i*200);
+      if (endR < 0 || endR >= N || endC < 0 || endC >= N) continue;
+
+      let canPlace = true;
+      let positions = [];
+
+      for (let i = 0; i < wordText.length; i++) {
+        const currR = r + dir[0] * i;
+        const currC = c + dir[1] * i;
+        const existingChar = state.board[currR][currC];
+
+        if (existingChar && existingChar !== wordText[i]) {
+          canPlace = false;
+          break;
+        }
+        positions.push({ r: currR, c: currC });
       }
-      // dust plume
-      const plume = document.createElement('div'); plume.style.position='fixed'; plume.style.left='50%'; plume.style.bottom='0'; plume.style.width='0'; plume.style.height='0'; plume.style.borderLeft='120px solid transparent'; plume.style.borderRight='120px solid transparent'; plume.style.borderBottom='240px solid #f59e0b55'; plume.style.transform='translateX(-50%)'; plume.style.filter='blur(2px)'; stage.appendChild(plume);
-      plume.animate([{opacity:0, transform:'translateX(-50%) scaleY(.6)'},{opacity:1, transform:'translateX(-50%) scaleY(1.05)'},{opacity:0, transform:'translateX(-50%) scaleY(1.2)'}],{duration:1800, easing:'ease-out'});
 
-      setTimeout(()=>{ stage.style.display='none'; stage.innerHTML=''; res(); }, 1900);
-    }, 1600);
+      if (canPlace) {
+        positions.forEach((pos, idx) => {
+          state.board[pos.r][pos.c] = wordText[idx];
+        });
+        state.targetWords.push({ text: wordText, positions, found: false });
+        placed = true;
+        break;
+      }
+    }
+  }
+
+  // Fill remaining null spaces
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  for (let r = 0; r < N; r++) {
+    for (let c = 0; c < N; c++) {
+      if (!state.board[r][c]) {
+        state.board[r][c] = alphabet[Math.floor(Math.random() * alphabet.length)];
+      }
+    }
+  }
+}
+
+// --- DOM BOARD RENDER ---
+function renderBoardDOM() {
+  const container = document.getElementById('gridBoard');
+  container.style.gridTemplateColumns = `repeat(${state.gridSize}, 1fr)`;
+  container.innerHTML = '';
+
+  for (let r = 0; r < state.gridSize; r++) {
+    for (let c = 0; c < state.gridSize; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.dataset.r = r;
+      cell.dataset.c = c;
+      cell.textContent = state.board[r][c];
+
+      if (state.wallhack) {
+        const isTarget = state.targetWords.some(w => w.positions.some(p => p.r === r && p.c === c));
+        if (isTarget) cell.classList.add('wallhack');
+      }
+
+      container.appendChild(cell);
+    }
+  }
+  renderWordList();
+}
+
+function renderWordList() {
+  const container = document.getElementById('wordListContainer');
+  container.innerHTML = '';
+
+  let foundCount = 0;
+  state.targetWords.forEach(w => {
+    if (w.found) foundCount++;
+    const tag = document.createElement('div');
+    tag.className = `word-tag ${w.found ? 'found' : ''}`;
+    tag.innerHTML = `<span>${w.text}</span> ${w.found ? '✓' : ''}`;
+    container.appendChild(tag);
+  });
+
+  document.getElementById('foundDisplay').textContent = `${foundCount} / ${state.targetWords.length}`;
+  const pct = state.targetWords.length > 0 ? Math.round((foundCount / state.targetWords.length) * 100) : 0;
+  document.getElementById('wordProgressPercent').textContent = `${pct}%`;
+}
+
+// --- STRAIGHT LINE DRAG SELECTION ---
+function getCellFromEvent(e) {
+  let clientX = e.clientX;
+  let clientY = e.clientY;
+  if (e.touches && e.touches.length > 0) {
+    clientX = e.touches[0].clientX;
+    clientY = e.touches[0].clientY;
+  }
+  const el = document.elementFromPoint(clientX, clientY);
+  if (el && el.classList.contains('cell')) {
+    return { r: parseInt(el.dataset.r), c: parseInt(el.dataset.c), el };
+  }
+  return null;
+}
+
+function handleStart(e) {
+  sfx.init();
+  const cell = getCellFromEvent(e);
+  if (!cell) return;
+  state.selecting = true;
+  state.startCell = cell;
+  state.dirLock = null;
+  state.currentPath = [cell];
+  highlightPath(state.currentPath);
+}
+
+function handleMove(e) {
+  if (!state.selecting || !state.startCell) return;
+  const cell = getCellFromEvent(e);
+  if (!cell) return;
+
+  const dr = cell.r - state.startCell.r;
+  const dc = cell.c - state.startCell.c;
+
+  if (!state.dirLock && (dr !== 0 || dc !== 0)) {
+    state.dirLock = {
+      r: Math.sign(dr),
+      c: Math.sign(dc)
+    };
+  }
+
+  if (state.dirLock) {
+    const steps = Math.max(Math.abs(dr), Math.abs(dc));
+    const path = [];
+    for (let i = 0; i <= steps; i++) {
+      const targetR = Math.max(0, Math.min(state.gridSize - 1, state.startCell.r + state.dirLock.r * i));
+      const targetC = Math.max(0, Math.min(state.gridSize - 1, state.startCell.c + state.dirLock.c * i));
+      path.push({ r: targetR, c: targetC });
+    }
+    state.currentPath = path;
+    highlightPath(state.currentPath);
+    sfx.playChime(300 + path.length * 40, 'sine', 0.05);
+  }
+}
+
+function handleEnd() {
+  if (!state.selecting) return;
+  state.selecting = false;
+  checkSelection(state.currentPath);
+  clearSelection();
+  state.currentPath = [];
+  state.dirLock = null;
+}
+
+function highlightPath(path) {
+  clearSelection();
+  const cells = document.querySelectorAll('.cell');
+  path.forEach(pt => {
+    const idx = pt.r * state.gridSize + pt.c;
+    if (cells[idx]) cells[idx].classList.add('sel');
   });
 }
 
-/*************** Game Over ****************/
-function gameOver(allFound){
-  const f = words.filter(w=>w.found).length; const m = words.length - f; addStars(0);
-  const box=$('#overBox'); box.innerHTML=`<div>
-    <div style="font-size:1.4rem;font-weight:900;margin-bottom:6px">${allFound? 'Perfect!' : 'Game Over'}</div>
-    <div style="margin-bottom:10px">You found <strong>${f}</strong> word(s) and missed <strong>${m}</strong>.</div>
-    <div style="margin-bottom:12px">⭐ earned this round: <strong>${f}</strong></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
-      <button class="btn" id="again">Play Again</button>
-      <button class="btn ghost" id="nextTopic">Next Topic</button>
-      <button class="btn neutral" id="goMenu">Main Menu</button>
-    </div>
-  </div>`; showModal('#over',true);
-  $('#again').onclick=()=>{ showModal('#over',false); startRun(); };
-  $('#nextTopic').onclick=()=>{ showModal('#over',false); pickTopic(); newBoard(currentTopic); renderBoard(); renderWordList(); updateFound(); };
-  $('#goMenu').onclick=()=>{ showModal('#over',false); toMenu(); };
+function clearSelection() {
+  document.querySelectorAll('.cell').forEach(c => c.classList.remove('sel'));
 }
 
-function toMenu(){ show(game,false); show(loading,false); show(menu,true); }
+function checkSelection(path) {
+  state.targetWords.forEach(w => {
+    if (w.found) return;
 
-/*************** Generic UI Helpers ****************/
-function show(elOrSel, on){ const el = (typeof elOrSel==='string')? $(elOrSel) : elOrSel; el.style.display = on? '' : 'none'; }
-function showModal(sel, on){ const el = $(sel); if(on){ el.classList.add('show'); el.setAttribute('aria-hidden','false'); } else { el.classList.remove('show'); el.setAttribute('aria-hidden','true'); } }
-function toast(msg){ const t=document.createElement('div'); t.textContent=msg; t.style.position='fixed'; t.style.inset='auto 20px 20px auto'; t.style.background='#0d163a'; t.style.border='1px solid rgba(255,255,255,.12)'; t.style.padding='12px 14px'; t.style.borderRadius='12px'; t.style.boxShadow='var(--shadow)'; document.body.appendChild(t); setTimeout(()=> t.remove(), 1600); }
+    const matchesFwd = path.length === w.positions.length && path.every((p, i) => p.r === w.positions[i].r && p.c === w.positions[i].c);
+    const matchesRev = path.length === w.positions.length && path.every((p, i) => p.r === w.positions[w.positions.length - 1 - i].r && p.c === w.positions[w.positions.length - 1 - i].c);
 
-/*************** Changelog dialog ***************/
-const logsBtn = document.getElementById('logsBtn'); const changelog = document.getElementById('changelog');
-logsBtn.addEventListener('click', ()=> changelog.showModal());
-Array.from(changelog.querySelectorAll('[data-close]')).forEach(b=> b.addEventListener('click', ()=> changelog.close()));
+    if (matchesFwd || matchesRev) {
+      w.found = true;
+      state.stats.words++;
+      state.stars += 1;
+      state.stats.starsTotal += 1;
+      saveStorage();
+      updateStarDisplay();
+      sfx.playMatch();
 
-/*************** Init ****************/
-setStars(0); $('#hintCount').textContent=hints;
-// default difficulty/time
-setTimer(300);
+      // Mark cells persistently
+      const cells = document.querySelectorAll('.cell');
+      w.positions.forEach(p => {
+        const idx = p.r * state.gridSize + p.c;
+        if (cells[idx]) cells[idx].classList.add('found-cell');
+      });
+
+      renderWordList();
+      checkWinCondition();
+    }
+  });
+}
+
+function checkWinCondition() {
+  if (state.targetWords.every(w => w.found)) {
+    endGame(true);
+  }
+}
+
+// --- TIMER & GAME LIFECYCLE ---
+function startTimer(seconds) {
+  clearInterval(state.timer);
+  state.timeRemaining = seconds;
+  state.isFrozen = false;
+  document.getElementById('icyEffect').classList.add('hidden');
+  updateTimerDisplay();
+
+  state.timer = setInterval(() => {
+    if (!state.isFrozen) {
+      state.timeRemaining--;
+      updateTimerDisplay();
+      if (state.timeRemaining <= 0) {
+        clearInterval(state.timer);
+        endGame(false);
+      }
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const m = String(Math.floor(state.timeRemaining / 60)).padStart(2, '0');
+  const s = String(state.timeRemaining % 60).padStart(2, '0');
+  document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+}
+
+function launchGame(topic) {
+  state.currentTopic = topic;
+  state.stats.games++;
+  saveStorage();
+
+  showView('loadingView');
+  document.getElementById('loadStatusText').textContent = `Building Matrix: ${topic.name}`;
+
+  setTimeout(() => {
+    generateGrid(topic);
+    renderBoardDOM();
+    showView('gameView');
+
+    document.getElementById('topicDisplay').textContent = topic.name;
+    document.getElementById('gridDiffDisplay').textContent = `${state.difficulty} (${state.gridSize}x${state.gridSize})`;
+
+    const timeMap = { Easy: 420, Normal: 300, Hard: 240 };
+    startTimer(timeMap[state.difficulty] || 300);
+  }, 800);
+}
+
+function endGame(won) {
+  clearInterval(state.timer);
+  const found = state.targetWords.filter(w => w.found).length;
+
+  document.getElementById('gameOverTitle').textContent = won ? 'Mission Accomplished!' : 'Time Expired';
+  document.getElementById('gameOverBody').textContent = won ? 'You successfully uncovered all cosmic terms.' : 'Grid timer ran out before all targets were located.';
+  document.getElementById('gameOverIcon').textContent = won ? '🏆' : '💀';
+  document.getElementById('goWordsFound').textContent = `${found} / ${state.targetWords.length}`;
+  document.getElementById('goStarsEarned').textContent = `+${found}`;
+
+  openModal('gameOverModal');
+}
+
+// --- POWER-UPS ENGINE ---
+document.getElementById('useHintBtn').onclick = () => {
+  if (state.inventory.hint <= 0) return alert('No Hint packs available in inventory.');
+  const unfound = state.targetWords.filter(w => !w.found);
+  if (!unfound.length) return;
+  
+  state.inventory.hint--;
+  updateInventoryUI();
+  saveStorage();
+
+  const target = unfound[Math.floor(Math.random() * unfound.length)];
+  const firstPos = target.positions[0];
+  const idx = firstPos.r * state.gridSize + firstPos.c;
+  const cell = document.querySelectorAll('.cell')[idx];
+
+  cell.classList.add('radar-flash');
+  setTimeout(() => cell.classList.remove('radar-flash'), 2500);
+};
+
+document.getElementById('useFreezeBtn').onclick = () => {
+  if (state.inventory.freeze <= 0) return alert('No Freeze charges available.');
+  state.inventory.freeze--;
+  updateInventoryUI();
+  saveStorage();
+
+  state.isFrozen = true;
+  document.getElementById('icyEffect').classList.remove('hidden');
+  sfx.playChime(800, 'sine', 0.5);
+
+  setTimeout(() => {
+    state.isFrozen = false;
+    document.getElementById('icyEffect').classList.add('hidden');
+  }, 15000);
+};
+
+document.getElementById('useRadarBtn').onclick = () => {
+  if (state.inventory.radar <= 0) return alert('No Radar charges available.');
+  const unfound = state.targetWords.filter(w => !w.found);
+  if (!unfound.length) return;
+
+  state.inventory.radar--;
+  updateInventoryUI();
+  saveStorage();
+
+  const target = unfound[Math.floor(Math.random() * unfound.length)];
+  const cells = document.querySelectorAll('.cell');
+  target.positions.forEach(p => {
+    const idx = p.r * state.gridSize + p.c;
+    if (cells[idx]) cells[idx].classList.add('radar-flash');
+  });
+
+  setTimeout(() => {
+    target.positions.forEach(p => {
+      const idx = p.r * state.gridSize + p.c;
+      if (cells[idx]) cells[idx].classList.remove('radar-flash');
+    });
+  }, 3000);
+};
+
+document.getElementById('usePulseBtn').onclick = () => {
+  if (state.inventory.pulse <= 0) return alert('No Pulse charges available.');
+  const unfound = state.targetWords.filter(w => !w.found);
+  if (!unfound.length) return;
+
+  state.inventory.pulse--;
+  updateInventoryUI();
+  saveStorage();
+
+  const target = unfound[Math.floor(Math.random() * unfound.length)];
+  const midPos = target.positions[Math.floor(target.positions.length / 2)];
+  
+  const cells = document.querySelectorAll('.cell');
+  for (let i = 0; i < state.gridSize; i++) {
+    const rowIdx = midPos.r * state.gridSize + i;
+    const colIdx = i * state.gridSize + midPos.c;
+    if (cells[rowIdx]) cells[rowIdx].classList.add('sel');
+    if (cells[colIdx]) cells[colIdx].classList.add('sel');
+  }
+
+  setTimeout(() => clearSelection(), 2000);
+};
+
+// --- STORE PURCHASES ---
+document.querySelectorAll('.buy-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const item = btn.dataset.item;
+    const cost = parseInt(btn.dataset.cost);
+
+    if (state.stars < cost) return alert('Insufficient ⭐ Stars.');
+
+    state.stars -= cost;
+    if (item === 'hint') state.inventory.hint = (state.inventory.hint || 0) + 3;
+    if (item === 'freeze') state.inventory.freeze = (state.inventory.freeze || 0) + 1;
+    if (item === 'radar') state.inventory.radar = (state.inventory.radar || 0) + 1;
+    if (item === 'pulse') state.inventory.pulse = (state.inventory.pulse || 0) + 1;
+    if (item === 'chrono') state.timeRemaining += 60;
+    if (item === 'autoSolve') {
+      const unfound = state.targetWords.filter(w => !w.found);
+      if (unfound.length) {
+        checkSelection(unfound[0].positions);
+      }
+    }
+
+    saveStorage();
+    updateStarDisplay();
+    updateInventoryUI();
+  });
+});
+
+// --- ADMIN SYSTEM & FAB ---
+const adminFab = document.getElementById('adminFab');
+let isDraggingFab = false, fabOffsetX = 0, fabOffsetY = 0;
+
+adminFab.addEventListener('mousedown', (e) => {
+  isDraggingFab = false;
+  fabOffsetX = e.clientX - adminFab.getBoundingClientRect().left;
+  fabOffsetY = e.clientY - adminFab.getBoundingClientRect().top;
+  
+  const onMouseMove = (me) => {
+    isDraggingFab = true;
+    adminFab.style.left = `${me.clientX - fabOffsetX}px`;
+    adminFab.style.top = `${me.clientY - fabOffsetY}px`;
+    adminFab.style.bottom = 'auto';
+    adminFab.style.right = 'auto';
+  };
+
+  const onMouseUp = () => {
+    window.removeEventListener('mousemove', onMouseMove);
+    window.removeEventListener('mouseup', onMouseUp);
+  };
+
+  window.addEventListener('mousemove', onMouseMove);
+  window.addEventListener('mouseup', onMouseUp);
+});
+
+adminFab.addEventListener('click', () => {
+  if (!isDraggingFab) {
+    if (state.adminUnlocked) {
+      openModal('adminPanelModal');
+    } else {
+      openModal('adminPassModal');
+    }
+  }
+});
+
+document.getElementById('submitAdminPass').onclick = () => {
+  const val = document.getElementById('adminPassInput').value.trim();
+  if (val === 'Alex') {
+    state.adminUnlocked = true;
+    closeModal('adminPassModal');
+    openModal('adminPanelModal');
+  } else {
+    alert('Invalid Access Key.');
+  }
+};
+
+document.getElementById('admFindAll').onclick = () => {
+  state.targetWords.forEach(w => {
+    if (!w.found) checkSelection(w.positions);
+  });
+  closeModal('adminPanelModal');
+};
+
+document.getElementById('admWallhack').onclick = () => {
+  state.wallhack = !state.wallhack;
+  renderBoardDOM();
+  closeModal('adminPanelModal');
+};
+
+document.getElementById('admAddStars').onclick = () => {
+  state.stars += 100;
+  state.stats.starsTotal += 100;
+  saveStorage();
+  updateStarDisplay();
+};
+
+document.getElementById('admSetTimer').onclick = () => {
+  const val = prompt('Set timer in seconds:', state.timeRemaining);
+  if (val && !isNaN(val)) {
+    state.timeRemaining = parseInt(val);
+    updateTimerDisplay();
+  }
+};
+
+document.getElementById('admForceWin').onclick = () => {
+  closeModal('adminPanelModal');
+  endGame(true);
+};
+
+document.getElementById('admForceLoss').onclick = () => {
+  closeModal('adminPanelModal');
+  endGame(false);
+};
+
+// --- SPECTACULAR CANVAS 2D NUCLEAR DESTRUCT ANIMATION ---
+document.getElementById('admNukeBtn').onclick = () => {
+  const key = prompt('Secondary Passkey Required for Destruct:');
+  if (key !== 'word') return alert('Access Denied.');
+
+  closeModal('adminPanelModal');
+  sfx.playNukeSound();
+
+  const canvas = document.getElementById('nukeCanvas');
+  const ctx = canvas.getContext('2d');
+  canvas.style.display = 'block';
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  let particles = [];
+  let rings = [];
+  let bombY = -100;
+  let groundY = canvas.height - 80;
+  let phase = 'falling'; // falling, blast, cloud
+  let startTime = Date.now();
+
+  function renderNuke() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (phase === 'falling') {
+      bombY += 18;
+      ctx.fillStyle = '#f43f5e';
+      ctx.beginPath();
+      ctx.arc(canvas.width / 2, bombY, 15, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (bombY >= groundY) {
+        phase = 'blast';
+        document.body.classList.add('glitch-screen');
+        for (let i = 0; i < 3; i++) {
+          rings.push({ r: 10, maxR: canvas.width * 0.8, alpha: 1 });
+        }
+      }
+    } else if (phase === 'blast') {
+      // Flash screen overlay
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Shockwave rings
+      rings.forEach((ring, idx) => {
+        ring.r += 25;
+        ring.alpha -= 0.02;
+        ctx.strokeStyle = `rgba(34, 211, 238, ${Math.max(0, ring.alpha)})`;
+        ctx.lineWidth = 12;
+        ctx.beginPath();
+        ctx.arc(canvas.width / 2, groundY, ring.r, 0, Math.PI * 2);
+        ctx.stroke();
+      });
+
+      if (Date.now() - startTime > 1200) {
+        phase = 'cloud';
+        // Spawn mushroom ember particles
+        for (let i = 0; i < 250; i++) {
+          particles.push({
+            x: canvas.width / 2,
+            y: groundY,
+            vx: (Math.random() - 0.5) * 12,
+            vy: -Math.random() * 15 - 2,
+            radius: Math.random() * 8 + 3,
+            color: `hsl(${Math.random() * 50 + 10}, 100%, 50%)`,
+            life: 1
+          });
+        }
+      }
+    } else if (phase === 'cloud') {
+      ctx.fillStyle = 'rgba(11, 16, 32, 0.3)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.15; // gravity curve
+        p.life -= 0.01;
+
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = Math.max(0, p.life);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+
+      if (Date.now() - startTime > 3500) {
+        document.body.classList.remove('glitch-screen');
+        document.getElementById('appRoot').innerHTML = `
+          <div class="flex flex-col items-center justify-center min-h-screen text-center p-6 space-y-6">
+            <h1 class="text-4xl md:text-6xl font-black text-rose-500 tracking-widest animate-pulse">SYSTEM DESTROYED</h1>
+            <p class="text-slate-400 font-mono text-sm">CRITICAL CORE OVERLOAD TRIGGERED BY AUTHORIZED ADMIN PASSKEY.</p>
+            <button class="btn py-4 px-8 text-lg" onclick="location.reload()">Reboot System Matrix</button>
+          </div>
+        `;
+        return;
+      }
+    }
+
+    requestAnimationFrame(renderNuke);
+  }
+
+  requestAnimationFrame(renderNuke);
+};
+
+// --- GENERAL MODAL HELPERS ---
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+document.querySelectorAll('[data-close-modal]').forEach(b => {
+  b.onclick = () => closeModal(b.dataset.closeModal);
+});
+
+// --- UI CONTROLS BINDING ---
+document.getElementById('diffSelector').addEventListener('click', (e) => {
+  if (e.target.dataset.diff) {
+    const diff = e.target.dataset.diff;
+    state.difficulty = diff;
+    state.gridSize = diff === 'Easy' ? 12 : diff === 'Hard' ? 16 : 14;
+
+    document.querySelectorAll('#diffSelector button').forEach(b => {
+      b.className = 'px-3 py-1.5 text-xs md:text-sm rounded-lg font-bold transition text-slate-400 hover:text-white';
+    });
+    e.target.className = 'px-3 py-1.5 text-xs md:text-sm rounded-lg font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40';
+  }
+});
+
+document.getElementById('launchPresetBtn').onclick = () => {
+  const randPreset = PRESETS[Math.floor(Math.random() * PRESETS.length)];
+  launchGame(randPreset);
+};
+
+document.getElementById('openCustomModalBtn').onclick = () => openModal('customModal');
+document.getElementById('openStoreBtn').onclick = () => openModal('storeModal');
+document.getElementById('logsBtn').onclick = () => openModal('logsModal');
+document.getElementById('statsBtn').onclick = () => {
+  document.getElementById('statGames').textContent = state.stats.games;
+  document.getElementById('statWords').textContent = state.stats.words;
+  openModal('statsModal');
+};
+
+document.getElementById('startCustomGameBtn').onclick = () => {
+  const title = document.getElementById('customTopicTitle').value.trim() || 'Custom Grid';
+  const raw = document.getElementById('customWordInput').value.trim();
+  const words = raw.split(',').map(s => s.trim().toUpperCase()).filter(s => s.length > 1);
+
+  if (words.length < 2) return alert('Enter at least 2 comma-separated words.');
+
+  closeModal('customModal');
+  launchGame({ name: title, words });
+};
+
+document.getElementById('surrenderBtn').onclick = () => {
+  clearInterval(state.timer);
+  showView('menuView');
+};
+
+document.getElementById('goPlayAgain').onclick = () => {
+  closeModal('gameOverModal');
+  if (state.currentTopic) launchGame(state.currentTopic);
+};
+
+document.getElementById('goMainMenu').onclick = () => {
+  closeModal('gameOverModal');
+  showView('menuView');
+};
+
+// --- GRID BOARD DRAG EVENT LISTENERS ---
+const gridEl = document.getElementById('gridBoard');
+gridEl.addEventListener('mousedown', handleStart);
+window.addEventListener('mousemove', handleMove);
+window.addEventListener('mouseup', handleEnd);
+
+gridEl.addEventListener('touchstart', (e) => { e.preventDefault(); handleStart(e); }, { passive: false });
+window.addEventListener('touchmove', handleMove);
+window.addEventListener('touchend', handleEnd);
+
+// --- STARTUP INIT ---
+renderPresetBadges();
+loadStorage();
+showView('menuView');
 </script>
 </body>
 </html>
